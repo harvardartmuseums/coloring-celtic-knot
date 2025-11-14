@@ -24,12 +24,13 @@ var knotLinks = new Array();
 var ctxKnot = knotCanvas.getContext('2d');
 var ctxUI   = UICanvas.getContext('2d');
 var drawingKnot = true;
-var drawingGates = true;
+var drawingGates = false;
 var drawingKnot = true;
 var drawingDotLattice = false;
+var outlineKnot = true;
 
-var knotBackgroundColor = "#000000";
-var knotStrandColor = "#ffffff";
+var knotBackgroundColor = "#ffffff";
+var knotStrandColor = "#000000";
 
 var gateColor = "#ffff00";
 
@@ -73,9 +74,10 @@ for(var i=0; i<colors.length; i++) {
 
 // Configuration mode drawing variables
 var strandProp = .75;
-var gapProp = .5;
+var gapProp = .15;
 var restricting = false;
 var distinguishingStrands = false;
+var outlineKnot = false;
 
 // Initialize
 initDiamondsAndCells();
@@ -239,6 +241,7 @@ this.drawSegment = function(ti,tf) {
 		}
 	}
 	ctxKnot.stroke();
+
 }
 
 this.getLength = function() { return cellSeq.length; }
@@ -295,6 +298,11 @@ this.ghost(1);
 ctxKnot.strokeStyle = link1.strandC;
 ctxKnot.lineWidth = link1.strandW;
 link1.drawSegment(l1ti,l1tf);
+if(outlineKnot) {
+	ctxKnot.globalCompositeOperation = "destination-out";
+	ctxKnot.lineWidth = link1.strandW - 5;
+	link1.drawSegment(l1ti,l1tf);
+}
 ctxKnot.restore();
 }
 this.drawSeg2 = function() {
@@ -310,6 +318,11 @@ this.ghost(1);
 ctxKnot.strokeStyle = link2.strandC;
 ctxKnot.lineWidth = link2.strandW;
 link2.drawSegment(l2ti,l2tf);
+if(outlineKnot) {
+	ctxKnot.globalCompositeOperation = "destination-out";
+	ctxKnot.lineWidth = link2.strandW - 5;
+	link2.drawSegment(l2ti,l2tf);
+}
 ctxKnot.restore();
 }
 
@@ -681,8 +694,13 @@ if(drawingKnot) {
 		var myKnot = knotLinks[i];
 		ctxKnot.strokeStyle = myKnot.strandC;
 		ctxKnot.lineWidth = myKnot.strandW;
-		
 		myKnot.drawSegment(0,myKnot.getLength());
+		if(outlineKnot) {
+			ctxKnot.globalCompositeOperation = "destination-out";
+			ctxKnot.lineWidth = myKnot.strandW - 5;
+			myKnot.drawSegment(0,myKnot.getLength());
+		}
+		ctxKnot.globalCompositeOperation = "source-over"; 
 	}
 	
 	for(var y=0; y<=knotHeight; y++) {
@@ -861,6 +879,7 @@ this.toggleDrawingGates = function(s) { drawingGates = s; drawCanvas(); }
 this.toggleDrawingDotLattice = function(s) { drawingDotLattice = s; drawCanvas(); }
 this.setDistinguishingStrands = function(s) { distinguishingStrands = s; drawCanvas(); }
 this.setColors = function(strand,back) { knotStrandColor = strand; knotBackgroundColor = back; drawCanvas(); }
+this.toggleOutlineKnot = function(s) { outlineKnot = s; drawCanvas(); }
 
 this.settQ = function(s) {
 tQ = s;
@@ -1011,9 +1030,11 @@ document.form1.field_enableEdting.addEventListener('click', function() {
 UICanvas.style.display = (document.form1.field_enableEdting.checked?'block':'none');
 }, false);
 document.form1.field_drawKnot.addEventListener('click',function() { myKnot.toggleDrawingKnot(this.checked); } ,false);
+document.form1.field_outlineKnot.addEventListener('click', function() { myKnot.toggleOutlineKnot(this.checked); }, false);
 document.form1.field_drawGates.addEventListener('click',function() { myKnot.toggleDrawingGates(this.checked); } ,false);
 document.form1.field_drawDotLattice.addEventListener('click',function() { myKnot.toggleDrawingDotLattice(this.checked); } ,false);
 document.form1.field_distinguishStrands.addEventListener('click', function() { document.form1.field_knotStrandColor.disabled=this.checked; myKnot.setDistinguishingStrands(this.checked); }, false);
+
 
 
 document.form1.redrawbutton.addEventListener('click', function() {
@@ -1086,7 +1107,7 @@ var ctx = myCanvas.getContext('2d');
 
 myCanvas.width  = 600;
 myCanvas.height = 200;
-ctxKnot.fillStyle="#000000";
+ctxKnot.fillStyle="#ffffff";
 ctxKnot.fillRect(0,0,1000,1000);
 
 /*
@@ -1149,6 +1170,12 @@ for(var i=0; i<n; i++) {
 </tr>
 <tr>
 <td colspan="3">
+<input type="checkbox" name="field_outlineKnot" id="fld_outlineKnot">
+<label for="fld_outlineKnot" class="act">Outline Knot</label>
+</td>
+</tr>
+<tr>
+<td colspan="3">
 <input type="checkbox" name="field_drawGates" id="fld_drawGates" checked="checked">
 <label for="fld_drawGates" class="act">Draw Gates</label>
 </td>
@@ -1204,7 +1231,7 @@ for(var i=0; i<n; i++) {
 <td>
 <label>Strand Color:</label>
 </td><td>
-<input type="text" name="field_knotStrandColor" value="white" style="width:3em; ">
+<input type="text" name="field_knotStrandColor" value="black" style="width:3em; ">
 </td>
 <td rowspan="2"><button type="button" onClick="swap(); " style="height:60px; ">Swap</button></td>
 </tr>
@@ -1212,7 +1239,7 @@ for(var i=0; i<n; i++) {
 <td>
 <label>Back Color:</label>
 </td><td>
-<input type="text" name="field_knotBackgroundColor" value="black" style="width:3em; ">
+<input type="text" name="field_knotBackgroundColor" value="#ffffff" style="width:3em; ">
 </td>
 </tr>
 <tr>
