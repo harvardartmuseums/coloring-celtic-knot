@@ -21,6 +21,14 @@ button, input{
 	border-radius: 20px;
 	padding:10px;
 	border:1px solid #898989;
+	margin:0 10px 15px 0;
+}
+
+input[type='range']{
+	margin:0 20px 10px 20px;
+	padding:0;
+	width: 300px;
+	accent-color:green;
 }
 
 button:hover, input:hover{
@@ -41,12 +49,14 @@ button:hover, input:hover{
 
 p{
 	font-family: arial;
-	font-size: 20px;
+	font-size: 23px;
 	margin: 5px 0;
+	font-weight: bold;
 }
 
 .small{
 	font-size: 16px;
+	font-weight: normal;
 }
 
 .help{
@@ -55,7 +65,11 @@ p{
 
 .context{
 	display: none;
-  }
+}
+
+#section-to-print{
+ margin: 20px 0 0 40px;
+}
 
 @media print {
   @page { margin:0;}
@@ -70,6 +84,7 @@ p{
   	transform: translateX(-50%);
     top: 10vh;
 	height: 90vh;
+	margin:0;
 	/* margin:0;
 	display:flex;
 	height:5vh;
@@ -1105,7 +1120,7 @@ if(0 < x && x < tW*knotWidth && 0 < y && y < tW*knotHeight) {
 
 function init() {
 
-var first_tileWidth = 22;
+var first_tileWidth = 20;
 var first_knotWidth = 7;
 var first_knotHeight = 9;
 var first_gap = .25;
@@ -1280,54 +1295,39 @@ for(var i=0; i<n; i++) {
 </head>
 <body onLoad="init();">
 <form name="form1">
-<div style="float:right;width:40%;">
-	<div style="display:inline-block; margin:0 15px 0 0;">
+<div style="float:right;width:40%; margin:0 25px 0 0;">
+	<div style="display:inline-block;">
 	<p>Step One: Choose Your Layout<br><br>
 	<button type="button" id="portrait" class="knoticons">Portrait<br><img src="images/portrait.png"></button>
 	<button type="button" id="square" class="knoticons">Square<br><img src="images/square.png"></button>
-	<br>
-	<span class="small">Changing the layout after you move to step two will reset your design.</span>
 	</p>
-	</div><br><br>
-	<div style="display:inline-block; margin:0 15px 0 0;">
+	</div>
+	<p class="small">Changing the layout after you move to step two will reset your design.</p>
+	<hr>
+	<div style="display:inline-block;">
 	<p>Step Two: Create Your Design<br><br>
 	<button type="button" id="blackDefault" class="knoticons">Black Background<br><img src="images/black_bg.png"></button>
 	<button type="button" id="outlineDefault" class="knoticons">No Background<br><img src="images/no_bg.png"></button>
 	</p>
 	</div>
 		<p class="small">Toggling the "distinguish strands" option colors the individual strands of the knot as you work on your design. The "print" button will hide the colors when you are finished.</p><br>
-	<div id="settingsdiv" style="display:inline-block;">
-	<tr>
-	<td id="settingstab2"><table border="0" cellspacing="0" cellpadding="0">
-	<tr>
-	<td colspan="3">
+
 	<input type="checkbox" name="field_distinguishStrands" id="fld_distinguishStrands">
 	<label for="fld_distinguishStrands" class="act">Distinguish Strands</label>
 	<br><br>
-	</td>
-	</tr>
-	<tr>
-	<td>
 	<label for="width">Strand Width:</label>
-	</td><td colspan="2">
+
 	<!-- <input type="text" name="field_strandWidth" value=".65" style="width:5em;"> -->
 	<input type="range" id="width" name="field_strandWidth" min=".2" max=".9" step=".01" value=".65" />
 	<!-- <label for="one">Zoom</label> -->
-	</td>
-	</tr>
-	<tr>
-	<td colspan="2"><br><br>
+
+	<hr>	
+	<br>
 	<input type="button" name="resetbutton" value="Start Over" style="width:40%;">
 	<input type="button" id="printPage" value="PRINT" style="width:40%;">
 	<!-- <input type="button" name="redrawbutton" value="Re-draw" style="width:50% "> -->
-	</td>
-	</tr>
-	</table>
-	</td>
-	</tr></table>
 	<br>
-	
-	</div> 
+
 </div>
 <div id="section-to-print">
 <p class="context top"><img width="120px" src="images/h_logo.svg" alt="Harvard Art Museums" /></p>
