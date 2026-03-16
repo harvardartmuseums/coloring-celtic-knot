@@ -5,7 +5,102 @@
 
 input { font-size:16pt; }
 label { font-size:16pt; }
-label.act:hover { background:#99ccff; }
+label.act:hover { cursor: pointer; }
+body{
+	font-family:arial;
+}
+
+
+#knotcontainerdiv{
+	border: 3px solid #000000;
+	position:relative; 
+	display:inline-block;
+}
+
+button, input{
+	border-radius: 20px;
+	padding:10px;
+	border:1px solid #898989;
+}
+
+button:hover, input:hover{
+	cursor:pointer;
+	background-color:#b9b9b9;
+}
+
+.knoticons{
+ display:inline-block;
+ width: 100px;
+ position: relative;
+ cursor: pointer;
+}
+
+.knoticons img{
+	width: 100%;
+}
+
+p{
+	font-family: arial;
+	font-size: 20px;
+	margin: 5px 0;
+}
+
+.small{
+	font-size: 16px;
+}
+
+.help{
+	max-width: 80%;
+}
+
+.context{
+	display: none;
+  }
+
+@media print {
+  @page { margin:0;}
+  body {
+    visibility: hidden;
+	margin: 2rem;
+  }
+  #section-to-print {
+    visibility: visible;
+    position: absolute;
+    left: 50%;
+  	transform: translateX(-50%);
+    top: 10vh;
+	height: 90vh;
+	/* margin:0;
+	display:flex;
+	height:5vh;
+	align-items:center; */
+  }
+
+  #section-to-print #canvas2{
+	display: none;
+  }
+
+  #knotcontainerdiv{
+	margin-top:135px;
+  }
+
+  .context{
+	display: block;
+	font-size: 16px;
+	position: absolute;
+    left: 50%;
+  transform: translateX(-50%);
+  }
+  .bottom{
+	width: 65vw;
+    bottom: 10vh;
+  }
+  .top{
+	width: 80vw;
+	top: -5vh;
+  }
+
+}
 
 </style>
 <script type="text/javascript">
@@ -29,8 +124,8 @@ var drawingKnot = true;
 var drawingDotLattice = false;
 var outlineKnot = true;
 
-var knotBackgroundColor = "#ffffff";
-var knotStrandColor = "#000000";
+var knotBackgroundColor = "#000000";
+var knotStrandColor = "#ffffff";
 
 var gateColor = "#ffff00";
 
@@ -73,8 +168,8 @@ for(var i=0; i<colors.length; i++) {
 
 
 // Configuration mode drawing variables
-var strandProp = .75;
-var gapProp = .15;
+var strandProp = .65;
+var gapProp = .25;
 var restricting = false;
 var distinguishingStrands = false;
 var outlineKnot = false;
@@ -1010,61 +1105,99 @@ if(0 < x && x < tW*knotWidth && 0 < y && y < tW*knotHeight) {
 
 function init() {
 
-var first_tileWidth = 20;
-var first_knotWidth = 6;
-var first_knotHeight = 5;
+var first_tileWidth = 22;
+var first_knotWidth = 7;
+var first_knotHeight = 9;
+var first_gap = .25;
+
+var knotBackgroundColor = "#000000";
+var knotStrandColor = "#ffffff";
 
 document.form1.reset();
-document.form1.field_tileWidth.value = first_tileWidth;
-document.form1.field_knotWidth.value = first_knotWidth;
-document.form1.field_knotHeight.value = first_knotHeight;
+// document.form1.field_tileWidth.value = first_tileWidth;
+// document.form1.field_knotWidth.value = first_knotWidth;
+// document.form1.field_knotHeight.value = first_knotHeight;
 
 var knotCanvas = document.getElementById('canvas1');
 var UICanvas = document.getElementById('canvas2');
+
+var blackBtn = document.getElementById('blackDefault');
+var outlineBtn = document.getElementById('outlineDefault');
+
+var portraitBtn = document.getElementById('portrait');
+var squareBtn = document.getElementById('square');
 
 var myKnot;
 //config = new CelticKnotConfigurator(3,2,mainCanvas,20);
 myKnot = new CelticKnotConfigurator(first_knotWidth,first_knotHeight,knotCanvas, UICanvas, first_tileWidth);
 
-document.form1.field_enableEdting.addEventListener('click', function() {
-UICanvas.style.display = (document.form1.field_enableEdting.checked?'block':'none');
+// document.form1.field_enableEdting.addEventListener('click', function() {
+// UICanvas.style.display = (document.form1.field_enableEdting.checked?'block':'none');
+// }, false);
+// document.form1.field_drawKnot.addEventListener('click',function() { myKnot.toggleDrawingKnot(this.checked); } ,false);
+// document.form1.field_outlineKnot.addEventListener('click', function() { myKnot.toggleOutlineKnot(this.checked); }, false);
+// document.form1.field_drawGates.addEventListener('click',function() { myKnot.toggleDrawingGates(this.checked); } ,false);
+// document.form1.field_drawDotLattice.addEventListener('click',function() { myKnot.toggleDrawingDotLattice(this.checked); } ,false);
+// document.form1.field_distinguishStrands.addEventListener('click', function() { document.form1.field_knotStrandColor.disabled=this.checked; myKnot.setDistinguishingStrands(this.checked); }, false);
+document.form1.field_distinguishStrands.addEventListener('click', function() { myKnot.setDistinguishingStrands(this.checked); }, false);
+
+// SIMPLIFIED UI BUTTONS
+blackBtn.addEventListener('click', function() { 
+	myKnot.toggleOutlineKnot(false); 
+	myKnot.setColors("#ffffff", "#000000");
 }, false);
-document.form1.field_drawKnot.addEventListener('click',function() { myKnot.toggleDrawingKnot(this.checked); } ,false);
-document.form1.field_outlineKnot.addEventListener('click', function() { myKnot.toggleOutlineKnot(this.checked); }, false);
-document.form1.field_drawGates.addEventListener('click',function() { myKnot.toggleDrawingGates(this.checked); } ,false);
-document.form1.field_drawDotLattice.addEventListener('click',function() { myKnot.toggleDrawingDotLattice(this.checked); } ,false);
-document.form1.field_distinguishStrands.addEventListener('click', function() { document.form1.field_knotStrandColor.disabled=this.checked; myKnot.setDistinguishingStrands(this.checked); }, false);
-
-
-
-document.form1.redrawbutton.addEventListener('click', function() {
-var tQ = parseFloat(document.form1.field_tileWidth.value);
-myKnot.settQ(tQ);
-
-var sWidth = parseFloat(document.form1.field_strandWidth.value);
-myKnot.setStrandWidth(sWidth);
-
-var sGapWidth = parseFloat(document.form1.field_strandGapWidth.value);
-myKnot.setStrandGapWidth(sGapWidth);
-
-myKnot.setColors(document.form1.field_knotStrandColor.value, document.form1.field_knotBackgroundColor.value);
+outlineBtn.addEventListener('click', function() { 
+	myKnot.toggleOutlineKnot(true); 
+	myKnot.setColors("#000000", "#ffffff");
 }, false);
+portraitBtn.addEventListener('click', function() { 
+	myKnot.setSize(first_knotWidth,first_knotHeight);
+}, false);
+squareBtn.addEventListener('click', function() { 
+	myKnot.setSize(first_knotWidth,first_knotWidth);
+}, false);
+document.getElementById("printPage").addEventListener('click', function() {
+	myKnot.setDistinguishingStrands(false);
+	document.form1.field_distinguishStrands.checked = false;
+	setTimeout(() => { window.print(); }, "300");
+}, false);
+
+document.getElementById("width").addEventListener("input", (event) => {
+	var sWidth = parseFloat(document.form1.field_strandWidth.value);
+	myKnot.setStrandWidth(sWidth);
+	var tQ = parseFloat(first_tileWidth);
+	myKnot.settQ(tQ);
+	var sGapWidth = parseFloat(first_gap);
+	myKnot.setStrandGapWidth(sGapWidth);
+});
+
+
+// document.form1.redrawbutton.addEventListener('click', function() {
+// var sWidth = parseFloat(document.form1.field_strandWidth.value);
+// myKnot.setStrandWidth(document.form1.field_strandWidth.value);
+// var tQ = parseFloat(first_tileWidth);
+// myKnot.settQ(tQ);
+
+// var sGapWidth = parseFloat(first_gap);
+// myKnot.setStrandGapWidth(sGapWidth);
+
+// // myKnot.setColors(knotStrandColor, knotBackgroundColor);
+// });
 
 document.form1.resetbutton.addEventListener('click', function() {
-var w = parseInt(document.form1.field_knotWidth.value);
-var h = parseInt(document.form1.field_knotHeight.value);
-myKnot.setSize(w,h);
-
-var tQ = parseFloat(document.form1.field_tileWidth.value);
-myKnot.settQ(tQ);
-
 var sWidth = parseFloat(document.form1.field_strandWidth.value);
 myKnot.setStrandWidth(sWidth);
+var w = parseInt(first_knotWidth);
+var h = parseInt(first_knotHeight);
+myKnot.setSize(w,h);
 
-var sGapWidth = parseFloat(document.form1.field_strandGapWidth.value);
+var tQ = parseFloat(first_tileWidth);
+myKnot.settQ(tQ);
+
+var sGapWidth = parseFloat(first_gap);
 myKnot.setStrandGapWidth(sGapWidth);
 
-myKnot.setColors(document.form1.field_knotStrandColor.value, document.form1.field_knotBackgroundColor.value);
+// myKnot.setColors(first_knotStrandColor, first_knotBackgroundColor);
 },false);
 
 
@@ -1072,15 +1205,16 @@ var labels = document.getElementsByTagName('label');
 for(var i=0; i<labels.length; i++) {
 	//labels[i].addEventListener('focus', function() { alert('a'); }, false);
 }
-document.getElementById("settingsdiv").addEventListener('mouseover', function() {
-document.getElementById("settingstab1").style.display="none";
-document.getElementById("settingstab2").style.display="table-cell";
-}, false);
+// document.getElementById("settingsdiv").addEventListener('mouseover', function() {
+// document.getElementById("settingstab1").style.display="none";
+// document.getElementById("settingstab2").style.display="table-cell";
+// }, false);
 
-document.getElementById("settingsdiv").addEventListener('mouseout', function() {
-document.getElementById("settingstab1").style.display="table-cell";
-document.getElementById("settingstab2").style.display="none";
-}, false);
+// document.getElementById("settingsdiv").addEventListener('mouseout', function() {
+// document.getElementById("settingstab1").style.display="table-cell";
+// document.getElementById("settingstab2").style.display="none";
+// }, false);
+
 
 }
 
@@ -1140,116 +1274,68 @@ for(var i=0; i<n; i++) {
 
 }
 
+
+
 </script>
 </head>
-<body onLoad="init(); ">
-
+<body onLoad="init();">
 <form name="form1">
-<div id="knotcontainerdiv" style="position:relative; display:inline-block; ">
-<canvas id="canvas1" width="1" height="1" style="position:absolute; top:0px; left:0px; background:#ffffff; "></canvas>
-<canvas id="canvas2" width="1" height="1" style="position:absolute; top:0px; left:0px; background:#none; cursor:pointer; "></canvas>
+<div style="float:right;width:40%;">
+	<div style="display:inline-block; margin:0 15px 0 0;">
+	<p>Step One: Choose Your Layout<br><br>
+	<button type="button" id="portrait" class="knoticons">Portrait<br><img src="images/portrait.png"></button>
+	<button type="button" id="square" class="knoticons">Square<br><img src="images/square.png"></button>
+	<br>
+	<span class="small">Changing the layout after you move to step two will reset your design.</span>
+	</p>
+	</div><br><br>
+	<div style="display:inline-block; margin:0 15px 0 0;">
+	<p>Step Two: Create Your Design<br><br>
+	<button type="button" id="blackDefault" class="knoticons">Black Background<br><img src="images/black_bg.png"></button>
+	<button type="button" id="outlineDefault" class="knoticons">No Background<br><img src="images/no_bg.png"></button>
+	</p>
+	</div>
+		<p class="small">Toggling the "distinguish strands" option colors the individual strands of the knot as you work on your design. The "print" button will hide the colors when you are finished.</p><br>
+	<div id="settingsdiv" style="display:inline-block;">
+	<tr>
+	<td id="settingstab2"><table border="0" cellspacing="0" cellpadding="0">
+	<tr>
+	<td colspan="3">
+	<input type="checkbox" name="field_distinguishStrands" id="fld_distinguishStrands">
+	<label for="fld_distinguishStrands" class="act">Distinguish Strands</label>
+	<br><br>
+	</td>
+	</tr>
+	<tr>
+	<td>
+	<label for="width">Strand Width:</label>
+	</td><td colspan="2">
+	<!-- <input type="text" name="field_strandWidth" value=".65" style="width:5em;"> -->
+	<input type="range" id="width" name="field_strandWidth" min=".2" max=".9" step=".01" value=".65" />
+	<!-- <label for="one">Zoom</label> -->
+	</td>
+	</tr>
+	<tr>
+	<td colspan="2"><br><br>
+	<input type="button" name="resetbutton" value="Start Over" style="width:40%;">
+	<input type="button" id="printPage" value="PRINT" style="width:40%;">
+	<!-- <input type="button" name="redrawbutton" value="Re-draw" style="width:50% "> -->
+	</td>
+	</tr>
+	</table>
+	</td>
+	</tr></table>
+	<br>
+	
+	</div> 
 </div>
-
-
-<div id="settingsdiv" style="position:absolute; top:0px; right:0px; background:#ffffff; display:inline-block; border:2px solid black; height:400px; ">
-<table cellspacing="0" border="0" cellpadding="10" style="height:100%; ">
-<tr>
-<td style="background:#99eeff; " id="settingstab1" style="display:block; ">Settings</td>
-<td id="settingstab2" style="display:none; "><table border="0" cellspacing="0" cellpadding="0">
-<tr>
-<td colspan="3">
-<input type="checkbox" name="field_enableEdting" id="fld_enableEditing" checked="checked">
-<label for="fld_enableEditing" class="act">Enable Editing</label>
-</td>
-</tr>
-<tr>
-<td colspan="3">
-<input type="checkbox" name="field_drawKnot" id="fld_drawKnot" checked="checked">
-<label for="fld_drawKnot" class="act">Draw Knot</label>
-</td>
-</tr>
-<tr>
-<td colspan="3">
-<input type="checkbox" name="field_outlineKnot" id="fld_outlineKnot">
-<label for="fld_outlineKnot" class="act">Outline Knot</label>
-</td>
-</tr>
-<tr>
-<td colspan="3">
-<input type="checkbox" name="field_drawGates" id="fld_drawGates" checked="checked">
-<label for="fld_drawGates" class="act">Draw Gates</label>
-</td>
-</tr>
-<tr>
-<td colspan="3">
-<input type="checkbox" name="field_drawDotLattice" id="fld_drawDotLattice">
-<label for="fld_drawDotLattice" class="act">Draw Lattice</label>
-</td>
-</tr>
-<tr>
-<td colspan="3">
-<input type="checkbox" name="field_distinguishStrands" id="fld_distinguishStrands">
-<label for="fld_distinguishStrands" class="act">Distinguish Strands</label>
-</td>
-</tr>
-<tr>
-<td>
-<label>Tile Size:</label>
-</td><td colspan="2">
-<input type="text" name="field_tileWidth" value="20" style="width:5em; ">
-</td>
-</tr>
-<tr>
-<td>
-<label>Knot Width:</label>
-</td><td colspan="2">
-<input type="text" name="field_knotWidth" value="5" style="width:5em; ">
-</td>
-</tr>
-<tr>
-<td>
-<label>Knot Height:</label>
-</td><td colspan="2">
-<input type="text" name="field_knotHeight" value="4" style="width:5em; ">
-</td>
-</tr>
-<tr>
-<td>
-<label>Strand Width:</label>
-</td><td colspan="2">
-<input type="text" name="field_strandWidth" value=".75" style="width:5em; ">
-</td>
-</tr>
-<tr>
-<td>
-<label>Gap Width</label>
-</td><td colspan="2">
-<input type="text" name="field_strandGapWidth" value=".5" style="width:5em; ">
-</td>
-</tr>
-<tr>
-<td>
-<label>Strand Color:</label>
-</td><td>
-<input type="text" name="field_knotStrandColor" value="black" style="width:3em; ">
-</td>
-<td rowspan="2"><button type="button" onClick="swap(); " style="height:60px; ">Swap</button></td>
-</tr>
-<tr>
-<td>
-<label>Back Color:</label>
-</td><td>
-<input type="text" name="field_knotBackgroundColor" value="#ffffff" style="width:3em; ">
-</td>
-</tr>
-<tr>
-<td colspan="2">
-<input type="button" name="resetbutton" value="Reset" style="width:50% "><input type="button" name="redrawbutton" value="Re-draw" style="width:50% ">
-</td>
-</tr>
-</table>
-</td>
-</tr></table>
+<div id="section-to-print">
+<p class="context top"><img width="120px" src="images/h_logo.svg" alt="Harvard Art Museums" /></p>
+<div id="knotcontainerdiv">
+<canvas id="canvas1" width="1" height="1" style="position:absolute; top:0px; left:0px; background:#ffffff; "></canvas>
+<canvas id="canvas2" width="1" height="1" style="position:absolute; top:0px; left:0px; background:none; cursor:pointer;"></canvas>
+</div>
+<p class="context bottom">Pellentesque neque mi, elementum vitae enim a, tincidunt interdum enim. Vivamus tempus turpis id orci vulputate tincidunt. Maecenas dignissim mollis nisl vitae lobortis. Morbi ac libero in ipsum sagittis lacinia et quis sem. Maecenas finibus odio ac iaculis vehicula. Vivamus nec tempus urna, porta sagittis justo. Integer vestibulum quis nibh vitae consequat.</p>
 </div>
 
 
