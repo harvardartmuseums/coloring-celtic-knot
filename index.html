@@ -1,5 +1,6 @@
 <html>
 <head>
+<meta name="viewport" content="width=device-width, initial-scale=1">
 <title>celtic</title>
 <style type="text/css">
 
@@ -71,6 +72,23 @@ p{
  margin: 20px 0 0 40px;
 }
 
+.instructions{
+	float:right;
+	width:40%; 
+	margin:0 25px 0 0;
+}
+
+@media screen and (max-width: 1000px) {
+	.instructions{
+		width: 90%;
+		float:left;
+		margin:0;
+	}
+	#section-to-print{
+		margin: 0;
+	}
+}
+
 @media print {
   @page { margin:0;}
   body {
@@ -113,6 +131,28 @@ p{
   .top{
 	width: 80vw;
 	top: -5vh;
+  }
+  .instructions{
+	display:none;
+  }
+
+  #section-to-print.sticker .context{
+	display:none;
+  }
+  #section-to-print.sticker{
+  	top: 0;
+	overflow:hidden;
+	width: 542px;
+	height: 822px;
+	left: 0%;
+  	transform: translateX(0%);
+    top: 0vh;
+	margin: 4px 0 0 10px;
+	padding:0;
+  }
+  #section-to-print.sticker #knotcontainerdiv{
+	margin: 0 0 0 0;
+	border: 0;
   }
 
 }
@@ -1120,10 +1160,24 @@ if(0 < x && x < tW*knotWidth && 0 < y && y < tW*knotHeight) {
 
 function init() {
 
+// Print Area
+var printArea = document.getElementById('section-to-print');
+
+// variables for sticker
+// var first_tileWidth = 25;
+// var first_knotWidth = 5;
+// var first_knotHeight = 8;
+// printArea.classList.add("sticker");
+
+// variables for portrait
 var first_tileWidth = 20;
 var first_knotWidth = 7;
 var first_knotHeight = 9;
+
+
 var first_gap = .25;
+
+var tQ = parseFloat(first_tileWidth);
 
 var knotBackgroundColor = "#000000";
 var knotStrandColor = "#ffffff";
@@ -1141,6 +1195,7 @@ var outlineBtn = document.getElementById('outlineDefault');
 
 var portraitBtn = document.getElementById('portrait');
 var squareBtn = document.getElementById('square');
+var stickerBtn = document.getElementById('sticker');
 
 var myKnot;
 //config = new CelticKnotConfigurator(3,2,mainCanvas,20);
@@ -1167,9 +1222,21 @@ outlineBtn.addEventListener('click', function() {
 }, false);
 portraitBtn.addEventListener('click', function() { 
 	myKnot.setSize(first_knotWidth,first_knotHeight);
+	printArea.classList.remove("sticker");
+	tQ = parseFloat('20');
+	myKnot.settQ(tQ);
 }, false);
 squareBtn.addEventListener('click', function() { 
 	myKnot.setSize(first_knotWidth,first_knotWidth);
+	printArea.classList.remove("sticker");
+	tQ = parseFloat('20');
+	myKnot.settQ(tQ);
+}, false);
+stickerBtn.addEventListener('click', function() { 
+	myKnot.setSize('5','8');
+	printArea.classList.add("sticker");
+	tQ = parseFloat('25');
+	myKnot.settQ(tQ);
 }, false);
 document.getElementById("printPage").addEventListener('click', function() {
 	myKnot.setDistinguishingStrands(false);
@@ -1180,7 +1247,7 @@ document.getElementById("printPage").addEventListener('click', function() {
 document.getElementById("width").addEventListener("input", (event) => {
 	var sWidth = parseFloat(document.form1.field_strandWidth.value);
 	myKnot.setStrandWidth(sWidth);
-	var tQ = parseFloat(first_tileWidth);
+	// var tQ = parseFloat(first_tileWidth);
 	myKnot.settQ(tQ);
 	var sGapWidth = parseFloat(first_gap);
 	myKnot.setStrandGapWidth(sGapWidth);
@@ -1295,11 +1362,12 @@ for(var i=0; i<n; i++) {
 </head>
 <body onLoad="init();">
 <form name="form1">
-<div style="float:right;width:40%; margin:0 25px 0 0;">
+<div class="instructions">
 	<div style="display:inline-block;">
 	<p>Step One: Choose Your Layout<br><br>
 	<button type="button" id="portrait" class="knoticons">Portrait<br><img src="images/portrait.png"></button>
 	<button type="button" id="square" class="knoticons">Square<br><img src="images/square.png"></button>
+	<button type="button" id="sticker" class="knoticons">Sticker</button>
 	</p>
 	</div>
 	<p class="small">Changing the layout after you move to step two will reset your design.</p>
