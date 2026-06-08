@@ -39,19 +39,30 @@ button:hover, input:hover{
 
 .knoticons{
  display:inline-block;
- width: 100px;
  position: relative;
  cursor: pointer;
+ width:45%;
 }
 
 .knoticons img{
-	width: 100%;
+	width: 35px;
+	display: inline-block;
+	float: left;
+}
+
+.knoticons p{
+	display: inline-block;
+	font-weight: normal;
+	float: left;
+	margin: 0 2px;
+	font-size: 15px;
+	width:65%;
 }
 
 p{
 	font-family: arial;
 	font-size: 23px;
-	margin: 5px 0;
+	margin: 0 0 0 5px;
 	font-weight: bold;
 }
 
@@ -1170,9 +1181,9 @@ var printArea = document.getElementById('section-to-print');
 // printArea.classList.add("sticker");
 
 // variables for portrait
-var first_tileWidth = 20;
-var first_knotWidth = 7;
-var first_knotHeight = 9;
+var first_tileWidth = 25;
+var first_knotWidth = 5;
+var first_knotHeight = 8;
 
 
 var first_gap = .25;
@@ -1186,6 +1197,16 @@ document.form1.reset();
 // document.form1.field_tileWidth.value = first_tileWidth;
 // document.form1.field_knotWidth.value = first_knotWidth;
 // document.form1.field_knotHeight.value = first_knotHeight;
+
+// Sticker setup on load
+printArea.classList.add("sticker");
+
+// Check if mobile
+function isMobileDevice() {
+    return (typeof window.orientation !== "undefined") || (navigator.userAgent.indexOf('IEMobile') !== -1);
+};
+
+var mobileCheck = isMobileDevice();
 
 var knotCanvas = document.getElementById('canvas1');
 var UICanvas = document.getElementById('canvas2');
@@ -1207,9 +1228,29 @@ myKnot = new CelticKnotConfigurator(first_knotWidth,first_knotHeight,knotCanvas,
 // document.form1.field_drawKnot.addEventListener('click',function() { myKnot.toggleDrawingKnot(this.checked); } ,false);
 // document.form1.field_outlineKnot.addEventListener('click', function() { myKnot.toggleOutlineKnot(this.checked); }, false);
 // document.form1.field_drawGates.addEventListener('click',function() { myKnot.toggleDrawingGates(this.checked); } ,false);
-// document.form1.field_drawDotLattice.addEventListener('click',function() { myKnot.toggleDrawingDotLattice(this.checked); } ,false);
+document.form1.field_drawDotLattice.addEventListener('click',function() { myKnot.toggleDrawingDotLattice(this.checked); } ,false);
 // document.form1.field_distinguishStrands.addEventListener('click', function() { document.form1.field_knotStrandColor.disabled=this.checked; myKnot.setDistinguishingStrands(this.checked); }, false);
 document.form1.field_distinguishStrands.addEventListener('click', function() { myKnot.setDistinguishingStrands(this.checked); }, false);
+
+// RESET for mobile
+var scale = '';
+if (mobileCheck == true){
+  var w = window.innerWidth;
+  scale = w*.033;
+  myKnot.setSize(first_knotWidth,first_knotHeight);
+  tQ = parseFloat(Math.floor(scale));
+  myKnot.settQ(tQ);
+}
+
+function enlarge(){
+	tQ = parseFloat('25');
+	myKnot.settQ(tQ);
+	setTimeout(() => { 
+		tQ = parseFloat(Math.floor(scale));
+		myKnot.settQ(tQ);
+	 }, "700");
+}
+
 
 // SIMPLIFIED UI BUTTONS
 blackBtn.addEventListener('click', function() { 
@@ -1220,27 +1261,32 @@ outlineBtn.addEventListener('click', function() {
 	myKnot.toggleOutlineKnot(true); 
 	myKnot.setColors("#000000", "#ffffff");
 }, false);
-portraitBtn.addEventListener('click', function() { 
-	myKnot.setSize(first_knotWidth,first_knotHeight);
-	printArea.classList.remove("sticker");
-	tQ = parseFloat('20');
-	myKnot.settQ(tQ);
-}, false);
-squareBtn.addEventListener('click', function() { 
-	myKnot.setSize(first_knotWidth,first_knotWidth);
-	printArea.classList.remove("sticker");
-	tQ = parseFloat('20');
-	myKnot.settQ(tQ);
-}, false);
-stickerBtn.addEventListener('click', function() { 
-	myKnot.setSize('5','8');
-	printArea.classList.add("sticker");
-	tQ = parseFloat('25');
-	myKnot.settQ(tQ);
-}, false);
+// portraitBtn.addEventListener('click', function() { 
+// 	myKnot.setSize(first_knotWidth,first_knotHeight);
+// 	printArea.classList.remove("sticker");
+// 	tQ = parseFloat('20');
+// 	myKnot.settQ(tQ);
+// }, false);
+// squareBtn.addEventListener('click', function() { 
+// 	myKnot.setSize(first_knotWidth,first_knotWidth);
+// 	printArea.classList.remove("sticker");
+// 	tQ = parseFloat('20');
+// 	myKnot.settQ(tQ);
+// }, false);
+// stickerBtn.addEventListener('click', function() { 
+// 	myKnot.setSize('5','8');
+// 	printArea.classList.add("sticker");
+// 	tQ = parseFloat('25');
+// 	myKnot.settQ(tQ);
+// }, false);
 document.getElementById("printPage").addEventListener('click', function() {
+	myKnot.toggleDrawingDotLattice(false);
 	myKnot.setDistinguishingStrands(false);
+	if (mobileCheck == true){
+		enlarge();
+	}
 	document.form1.field_distinguishStrands.checked = false;
+	document.form1.field_drawDotLattice.checked = false;
 	setTimeout(() => { window.print(); }, "300");
 }, false);
 
@@ -1363,7 +1409,7 @@ for(var i=0; i<n; i++) {
 <body onLoad="init();">
 <form name="form1">
 <div class="instructions">
-	<div style="display:inline-block;">
+	<!-- <div style="display:inline-block;">
 	<p>Step One: Choose Your Layout<br><br>
 	<button type="button" id="portrait" class="knoticons">Portrait<br><img src="images/portrait.png"></button>
 	<button type="button" id="square" class="knoticons">Square<br><img src="images/square.png"></button>
@@ -1371,17 +1417,20 @@ for(var i=0; i<n; i++) {
 	</p>
 	</div>
 	<p class="small">Changing the layout after you move to step two will reset your design.</p>
-	<hr>
+	<hr> -->
 	<div style="display:inline-block;">
-	<p>Step Two: Create Your Design<br><br>
-	<button type="button" id="blackDefault" class="knoticons">Black Background<br><img src="images/black_bg.png"></button>
-	<button type="button" id="outlineDefault" class="knoticons">No Background<br><img src="images/no_bg.png"></button>
-	</p>
-	</div>
-		<p class="small">Toggling the "distinguish strands" option colors the individual strands of the knot as you work on your design. The "print" button will hide the colors when you are finished.</p><br>
-
-	<input type="checkbox" name="field_distinguishStrands" id="fld_distinguishStrands">
-	<label for="fld_distinguishStrands" class="act">Distinguish Strands</label>
+	<p>Create Your Design<br><br>
+	<p class="small">Click on the knot to change the connections of the strands and use the controls below to customize it.</p>
+	<br>
+	<button type="button" id="blackDefault" class="knoticons"><img src="images/black_bg.png"><p>Black Background</p></button>
+	<button type="button" id="outlineDefault" class="knoticons"><img src="images/no_bg.png"><p>No Background</p></button>
+	</p>	</div>
+		<p class="small">Toggling the options below can help you create your design. The "print" button will hide the colors and lattice dots when you are finished.</p><br>
+	<input type="checkbox" name="field_drawDotLattice" id="field_drawDotLattice">
+	<label for="field_drawDotLattice" class="act">Draw Lattice</label>
+	<br><br>
+	<input type="checkbox" name="field_distinguishStrands" id="field_distinguishStrands">
+	<label for="field_distinguishStrands" class="act">Distinguish Strands</label>
 	<br><br>
 	<label for="width">Strand Width:</label>
 
