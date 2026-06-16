@@ -1,6 +1,8 @@
 <html>
 <head>
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/0.5.0-beta4/html2canvas.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
 <title>celtic</title>
 <style type="text/css">
 
@@ -91,9 +93,9 @@ p{
 
 @media screen and (max-width: 1000px) {
 	.instructions{
-		width: 90%;
+		width: 98%;
 		float:left;
-		margin:0;
+		margin:0 auto;
 	}
 	#section-to-print{
 		margin: 0;
@@ -106,6 +108,11 @@ p{
     visibility: hidden;
 	margin: 2rem;
   }
+  .hide{
+		display:none;
+		font-size:0;
+		margin:0;
+	}
   #section-to-print {
     visibility: visible;
     position: absolute;
@@ -173,7 +180,6 @@ p{
 
 
 function CelticKnotConfigurator(knotWidth, knotHeight, knotCanvas, UICanvas, tQ) {
-document.form1.out1.value = "";
 
 // Knot state variables
 var evenDiamonds = new Array();
@@ -187,7 +193,7 @@ var ctxUI   = UICanvas.getContext('2d');
 var drawingKnot = true;
 var drawingGates = false;
 var drawingKnot = true;
-var drawingDotLattice = false;
+var drawingDotLattice = true;
 var outlineKnot = true;
 
 var knotBackgroundColor = "#000000";
@@ -237,7 +243,7 @@ for(var i=0; i<colors.length; i++) {
 var strandProp = .65;
 var gapProp = .25;
 var restricting = false;
-var distinguishingStrands = false;
+var distinguishingStrands = true;
 var outlineKnot = false;
 
 // Initialize
@@ -1184,7 +1190,7 @@ var printArea = document.getElementById('section-to-print');
 var first_tileWidth = 25;
 var first_knotWidth = 5;
 var first_knotHeight = 8;
-var windowW = window.innerWidth;
+var windowW = screen.width;
 var scale = '';
 
 var first_gap = .25;
@@ -1218,6 +1224,7 @@ var outlineBtn = document.getElementById('outlineDefault');
 var portraitBtn = document.getElementById('portrait');
 var squareBtn = document.getElementById('square');
 var stickerBtn = document.getElementById('sticker');
+var randomBtn = document.getElementById('random');
 
 var myKnot;
 //config = new CelticKnotConfigurator(3,2,mainCanvas,20);
@@ -1242,9 +1249,21 @@ if (mobileCheck == true){
   myKnot.settQ(tQ);
 }
 
+// function saveImage(){
+// 	var canvas = document.getElementById("canvas1");
+// 	var fullQuality = canvas.toDataURL("image/jpeg", .75);
+// 	console.log(fullQuality);
+// 	setTimeout(function(){ 
+// 		$("#fileToUpload").val(fullQuality);
+// 		// document.getElementById("uploadImage").submit();
+// 	 }, 1000);
+	
+// }
+
 function enlarge(){
 	tQ = parseFloat('25');
 	myKnot.settQ(tQ);
+	saveImage();
 	setTimeout(() => { 
 		tQ = parseFloat(Math.floor(scale));
 		myKnot.settQ(tQ);
@@ -1279,16 +1298,28 @@ outlineBtn.addEventListener('click', function() {
 // 	tQ = parseFloat('25');
 // 	myKnot.settQ(tQ);
 // }, false);
+
+
 document.getElementById("printPage").addEventListener('click', function() {
 	myKnot.toggleDrawingDotLattice(false);
 	myKnot.setDistinguishingStrands(false);
-	if (mobileCheck == true){
-		enlarge();
-	}
 	document.form1.field_distinguishStrands.checked = false;
 	document.form1.field_drawDotLattice.checked = false;
-	setTimeout(() => { window.print(); }, "300");
+	if (mobileCheck == true){
+		enlarge();
+	}else{
+		setTimeout(() => { window.print(); }, "300");
+	}
+	
 }, false);
+
+// document.getElementById("save").addEventListener('click', function() {
+// 	if (mobileCheck == true){
+// 		enlarge();
+// 	}else{
+// 		saveImage();
+// 	}
+// },);
 
 document.getElementById("width").addEventListener("input", (event) => {
 	var sWidth = parseFloat(document.form1.field_strandWidth.value);
@@ -1427,35 +1458,36 @@ for(var i=0; i<n; i++) {
 	<hr> -->
 	<div style="display:inline-block;">
 	<p>Create Your Design<br><br>
-	<p class="small">Click on the knot to change the connections of the strands and use the controls below to customize it.</p>
-	<br>
 	<button type="button" id="blackDefault" class="knoticons"><img src="images/black_bg.png"><p>Black Background</p></button>
 	<button type="button" id="outlineDefault" class="knoticons"><img src="images/no_bg.png"><p>No Background</p></button>
 	</p>	</div>
-		<p class="small">Toggling the options below can help you create your design. The "print" button will hide the colors and lattice dots when you are finished.</p><br>
-	<input type="checkbox" name="field_drawDotLattice" id="field_drawDotLattice">
-	<label for="field_drawDotLattice" class="act">Draw Lattice</label>
+		<p class="small">Toggling the options below can help you create your design.</p><br>
+	<input type="checkbox" name="field_drawDotLattice" id="field_drawDotLattice" checked>
+	<label for="field_drawDotLattice" class="act" style="font-size: 18px; display:inline-block; margin-right: 10px;">Draw Lattice</label>
+	
+	<input type="checkbox" name="field_distinguishStrands" id="field_distinguishStrands" checked>
+	<label for="field_distinguishStrands" class="act" style="font-size: 18px; display:inline-block;">Distinguish Strands</label>
 	<br><br>
-	<input type="checkbox" name="field_distinguishStrands" id="field_distinguishStrands">
-	<label for="field_distinguishStrands" class="act">Distinguish Strands</label>
-	<br><br>
-	<label for="width">Strand Width:</label>
-
+	<label for="width" style="font-size: 18px;">Strand Width:</label>
 	<!-- <input type="text" name="field_strandWidth" value=".65" style="width:5em;"> -->
 	<input type="range" id="width" name="field_strandWidth" min=".2" max=".9" step=".01" value=".65" />
 	<!-- <label for="one">Zoom</label> -->
-
+	<br><br>
 	<hr>	
 	<br>
-	<input type="button" name="resetbutton" value="Start Over" style="width:40%;">
-	<input type="button" id="printPage" value="PRINT" style="width:40%;">
+	<p class="small">When you click "print", you will collect your black and white sticker. If you'd like to use the color version to guide coloring your sticker, take a photo before you print.</p>
+	<br>
+	<input type="button" name="resetbutton" value="Start Over" style="width:35%;">
+	<input type="button" id="printPage" value="PRINT" style="width:28%;">
 	<!-- <input type="button" name="redrawbutton" value="Re-draw" style="width:50% "> -->
 	<br>
 
 </div>
 <div id="section-to-print">
 <p class="context top"><img width="120px" src="images/h_logo.svg" alt="Harvard Art Museums" /></p>
-<div id="knotcontainerdiv">
+<p class="small hide">Tap on the knot to change the direction of the strands.<br><br>
+</p>
+<div id="knotcontainerdiv">	
 <canvas id="canvas1" width="1" height="1" style="position:absolute; top:0px; left:0px; background:#ffffff; "></canvas>
 <canvas id="canvas2" width="1" height="1" style="position:absolute; top:0px; left:0px; background:none; cursor:pointer;"></canvas>
 </div>
