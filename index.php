@@ -1,0 +1,1572 @@
+<html>
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/0.5.0-beta4/html2canvas.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
+<title>celtic</title>
+<style type="text/css">
+
+input { font-size:16pt; }
+label { font-size:16pt; }
+label.act:hover { cursor: pointer; }
+body{
+	font-family:arial;
+}
+
+
+#knotcontainerdiv{
+	border: 3px solid #000000;
+	position:relative; 
+	display:inline-block;
+}
+
+button, input{
+	border-radius: 20px;
+	padding:10px;
+	border:1px solid #898989;
+	margin:0 10px 15px 0;
+}
+
+input[type='range']{
+	margin:0 20px 10px 20px;
+	padding:0;
+	width: 300px;
+	accent-color:green;
+}
+
+button:hover, input:hover{
+	cursor:pointer;
+	background-color:#b9b9b9;
+}
+
+.knoticons{
+ display:inline-block;
+ position: relative;
+ cursor: pointer;
+ width:45%;
+}
+
+.knoticons img{
+	width: 35px;
+	display: inline-block;
+	float: left;
+}
+
+.knoticons p{
+	display: inline-block;
+	font-weight: normal;
+	float: left;
+	margin: 0 2px;
+	font-size: 15px;
+	width:65%;
+}
+
+p{
+	font-family: arial;
+	font-size: 23px;
+	margin: 0 0 0 5px;
+	font-weight: bold;
+}
+
+.small{
+	font-size: 16px;
+	font-weight: normal;
+}
+
+.help{
+	max-width: 80%;
+}
+
+.context{
+	display: none;
+}
+
+#section-to-print{
+ margin: 20px 0 0 40px;
+}
+
+.instructions{
+	float:right;
+	width:40%; 
+	margin:0 25px 0 0;
+}
+
+@media screen and (max-width: 1000px) {
+	.instructions{
+		width: 98%;
+		float:left;
+		margin:0 auto;
+	}
+	#section-to-print{
+		margin: 0;
+	}
+}
+
+@media print {
+  @page { margin:0;}
+  body {
+    visibility: hidden;
+	margin: 2rem;
+  }
+  #section-to-print {
+    visibility: visible;
+    position: absolute;
+    left: 50%;
+  	transform: translateX(-50%);
+    top: 10vh;
+	height: 90vh;
+	margin:0;
+	/* margin:0;
+	display:flex;
+	height:5vh;
+	align-items:center; */
+  }
+
+  #section-to-print #canvas2{
+	display: none;
+  }
+
+  #knotcontainerdiv{
+	margin-top:135px;
+  }
+
+  .context{
+	display: block;
+	font-size: 16px;
+	position: absolute;
+    left: 50%;
+  transform: translateX(-50%);
+  }
+  .bottom{
+	width: 65vw;
+    bottom: 10vh;
+  }
+  .top{
+	width: 80vw;
+	top: -5vh;
+  }
+  .instructions{
+	display:none;
+  }
+
+  #section-to-print.sticker .context{
+	display:none;
+  }
+  #section-to-print.sticker{
+  	top: 0;
+	overflow:hidden;
+	width: 542px;
+	height: 822px;
+	left: 0%;
+  	transform: translateX(0%);
+    top: 0vh;
+	margin: 4px 0 0 10px;
+	padding:0;
+  }
+  #section-to-print.sticker #knotcontainerdiv{
+	margin: 0 0 0 0;
+	border: 0;
+  }
+
+}
+
+</style>
+<script type="text/javascript">
+
+var adj = "";
+var ns = "";
+
+var adjective = "";
+var noun = "";
+
+fetch('adjectives-list.json')
+    .then(res => res.json())
+    .then(data => {
+		adj = data.adjectives;
+		var randomElement = adj[Math.floor(Math.random() * adj.length)];
+		adjective = randomElement;
+        // on print, shuffle chosen name
+    })
+
+fetch('nouns-list.json')
+    .then(res => res.json())
+    .then(data => {
+		ns = data.nouns;
+		var randomElement = ns[Math.floor(Math.random() * ns.length)];
+		noun = randomElement;
+		setTimeout(function(){ 
+			showName();
+	 	}, 1000);
+		
+        // on print, shuffle chosen name
+    })
+
+
+function showName(){
+	document.getElementById('randomname').innerText = adjective+" "+noun;
+	document.getElementById('fileName').value = adjective+"_"+noun;
+}
+function randomName(){
+	var randomAdj = adj[Math.floor(Math.random() * adj.length)];
+	adjective = randomAdj;
+	var randomNoun = ns[Math.floor(Math.random() * ns.length)];
+	noun = randomNoun;
+	showName();
+}
+
+
+function CelticKnotConfigurator(knotWidth, knotHeight, knotCanvas, UICanvas, tQ) {
+
+// Knot state variables
+var evenDiamonds = new Array();
+var oddDiamonds  = new Array();
+var Cells = new Array();
+var knotLinks = new Array();
+
+// Drawing options variables
+var ctxKnot = knotCanvas.getContext('2d');
+var ctxUI   = UICanvas.getContext('2d');
+var drawingKnot = true;
+var drawingGates = false;
+var drawingKnot = true;
+var drawingDotLattice = false;
+var outlineKnot = true;
+
+var knotBackgroundColor = "#000000";
+var knotStrandColor = "#ffffff";
+
+var gateColor = "#ffff00";
+
+var curveStrength = .15;
+var curveStyle = 4;
+
+var c = Math.floor(tQ/2);
+var cPad = [c,c,c,c];
+var tH = 2*tQ;
+var tW = 2*tH;
+
+var knotStrandColors;
+knotStrandColors = ['#0000ff','#ff0000','#00ff00','#ffff00','#00ffff','#999999','#ff00ff','#ff8800'];
+var colors = [ [0,0,255], [255,0,0], [0,255,0], [255,255,0], [0,255,255], [125,125,125], [255,0,255], [255,125,0] ];
+
+for(var i=0; i<colors.length; i++) {
+	var c = colors[i];
+	var r = c[0];
+	var g = c[1];
+	var b = c[2];
+	r = (2*r+255)/4;
+	g = (2*g+255)/4;
+	b = (2*b+255)/4;
+	knotStrandColors[i] = "#"+hex(r)+""+hex(g)+""+hex(b);
+	//r = 255*(1-Math.pow(1-r/255,2));
+	//g = 255*(1-Math.pow(1-g/255,2));
+	//b = 255*(1-Math.pow(1-b/255,2));
+	r = (r+.5*255)/1.5;
+	g = (g+.5*255)/1.5;
+	b = (b+.5*255)/1.5;
+	knotStrandColors[i+colors.length] = "#"+hex(r)+""+hex(g)+""+hex(b);
+	r = r/2;
+	g = g/2;
+	b = b/2;
+	knotStrandColors[i+2*colors.length] = "#"+hex(r)+""+hex(g)+""+hex(b);
+}
+
+//knotStrandColors = ['#ffcccc','#ffffcc','#ccffcc','#ccffff','#ccccff','#ffccff','#996666','#999966','#669966','#669999','#666699','#996699'];
+
+
+
+// Configuration mode drawing variables
+var strandProp = .65;
+var gapProp = .25;
+var restricting = false;
+var distinguishingStrands = true;
+var outlineKnot = false;
+
+// Initialize
+initDiamondsAndCells();
+
+/*
+for(var y=0; y<knotHeight; y++) {
+	for(var x=2; x<knotWidth; x=x+2) {
+		oddDiamonds[y][x].setState(2);
+	}
+}
+for(var y=2; y<knotHeight; y=y+2) {
+	for(var x=0; x<knotWidth; x++) {
+		evenDiamonds[y][x].setState(1);
+	}
+}
+*/
+
+setCanvas();
+findLinks();
+drawCanvas();
+
+UICanvas.addEventListener('mousemove', diamondIndicator, false);
+UICanvas.addEventListener('click', diamondSelector, false);
+UICanvas.addEventListener('mouseout', drawCanvas, false);
+
+// Knot Functions
+this.setSize = function(w,h) {
+knotWidth = w;
+knotHeight = h;
+initDiamondsAndCells();
+setCanvas();
+findLinks();
+drawCanvas();
+}
+
+function initDiamondsAndCells() {
+	for(var y=0; y<=knotHeight; y++) {
+		evenDiamonds[y] = new Array();
+		for(var x=0; x<knotWidth; x++) {
+			evenDiamonds[y][x] = new Diamond(x,y,0);
+		}
+	}
+	for(var y=0; y<knotHeight; y++) {
+		oddDiamonds[y] = new Array();
+		for(var x=0; x<=knotWidth; x++) {
+			oddDiamonds[y][x] = new Diamond(x,y,1);
+		}
+	}
+
+	for(var x=0; x<knotWidth; x++) {
+		evenDiamonds[0][x].setState(1);
+		evenDiamonds[knotHeight][x].setState(1);
+	}
+	for(var y=0; y<knotHeight; y++) {
+		oddDiamonds[y][0].setState(2);
+		oddDiamonds[y][knotWidth].setState(2);
+	}
+
+	for(var y=0; y<2*knotHeight; y++) {
+		Cells[y] = new Array();
+		for(var x=0; x<2*knotWidth; x++) {
+			Cells[y][x] = new Cell(x,y);
+		}
+	}
+}
+
+function findLinks() {
+
+//alert(evenDiamonds[1][1].getState());
+
+var touchedCells = new Array();
+for(var i=0; i<4*knotWidth*knotHeight; i++) {
+	touchedCells[i] = false;
+}
+
+var startX = 2*knotWidth-1;
+var startY = 2*knotHeight-1;
+
+var allLinks = new Array();
+
+outter:
+for(var i=0; i<knotWidth*knotHeight; i++) {
+	//document.form1.out1.value += startX+" : "+startY + "\n";
+	var cellSeq = new Array();
+	var inDirSeq = new Array();
+	var outDirSeq = new Array();
+
+	var prevCell;
+	var currCell = Cells[startY][startX];
+
+	var linkOpen=true;
+	var closed = 0;
+	while(linkOpen) {
+		cellSeq[cellSeq.length] = currCell;
+		touchedCells[parseInt(currCell.toString())] = true;
+		closed++;
+		//if(prevCell) { alert('PREVCELL'); alert(currCell.getNeighbor1()); }
+		if( prevCell && currCell.getNeighbor2().equals(prevCell) ) {
+			//alert(currCell.getX()+":"+currCell.getY()+"\t case1");
+			
+			outDirSeq[outDirSeq.length] = currCell.getDir1();
+			inDirSeq[inDirSeq.length] = currCell.getDir2();
+			
+			prevCell = currCell;
+			currCell = currCell.getNeighbor1();
+			
+		} else {
+			//alert(currCell.getX()+":"+currCell.getY()+"\t case2");
+			outDirSeq[outDirSeq.length] = currCell.getDir2();
+			inDirSeq[inDirSeq.length] = currCell.getDir1();
+			
+			prevCell = currCell;
+			currCell = currCell.getNeighbor2();
+		}
+		if( currCell.equals(cellSeq[0]) ) {
+			linkOpen=false;
+		}
+	}
+	allLinks[i] = new Link(cellSeq, inDirSeq, outDirSeq);
+
+	
+	var unTouched = touchedCells.lastIndexOf(false);
+	if(unTouched > -1) {
+		startX = unTouched - 2*knotWidth*Math.floor(unTouched/(2*knotWidth));
+		startY = Math.floor(unTouched/(2*knotWidth));
+	} else {
+		break outter;
+	}
+}
+knotLinks = allLinks;
+}
+
+function Link(cellSeq, inDirSeq, outDirSeq) {
+
+this.strandW = strandProp*tH;
+this.strandC = knotStrandColor;
+
+for(var i=0; i<cellSeq.length; i++) {
+	var d = cellsToDiamond(cellSeq[i],outDirSeq[i]);
+	switch(outDirSeq[i]) {
+		case 3:
+		case 7:
+			d.setLink1(this,i,i+2);
+		break;
+		case 1:
+		case 5:
+			d.setLink2(this,i,i+2);
+		break;
+		default:
+		break;
+	}
+}
+this.drawSegment = function(ti,tf) {
+	ctxKnot.beginPath();
+	for(var j=ti; j<tf; j++) {
+		i = j%cellSeq.length;
+		for(var t=0; t<=1; t+=1/32) {
+			var xx = cPad[3] + cellSeq[i].getX()*tH + tQ;
+			var yy = cPad[0] + tQ + cellSeq[i].getY()*tH;
+			ctxKnot.lineTo(xx + tQ*makeBezierX(inDirSeq[i],outDirSeq[i])(t), yy + tQ*makeBezierY(inDirSeq[i],outDirSeq[i])(t));
+		}
+	}
+	ctxKnot.stroke();
+
+}
+
+this.getLength = function() { return cellSeq.length; }
+}
+
+function Gate() {
+this.state = false;
+}
+
+function Diamond(x,y,parity) {
+var vGate = new Gate();
+var hGate = new Gate();
+
+var link1,link2, l1ti,l1tf, l2ti,l2tf;
+
+this.setLink1 = function(l,ti,tf) {
+link1 = l;
+l1ti = ti;
+l1tf = tf;
+}
+this.setLink2 = function(l,ti,tf) {
+link2 = l;
+l2ti = ti;
+l2tf = tf;
+}
+
+this.ghost = function(c) {
+var xx = cPad[3] + x*tW;
+var yy = cPad[0] + y*tW;
+if(parity) {
+	yy += tH;
+} else {
+	xx += tH;
+}
+ctxKnot.beginPath();
+ctxKnot.moveTo(xx-c*tH, yy);
+ctxKnot.lineTo(xx, yy-c*tH);
+ctxKnot.lineTo(xx+c*tH, yy);
+ctxKnot.lineTo(xx, yy+c*tH);
+ctxKnot.clip();
+}
+
+this.drawSeg1 = function() {
+
+ctxKnot.save();
+this.ghost(.95);
+ctxKnot.globalCompositeOperation = "destination-out";
+ctxKnot.lineWidth = link1.strandW + gapProp*tQ;
+link1.drawSegment(l1ti,l1tf);
+ctxKnot.restore();
+
+ctxKnot.save();
+this.ghost(1);
+ctxKnot.strokeStyle = link1.strandC;
+ctxKnot.lineWidth = link1.strandW;
+link1.drawSegment(l1ti,l1tf);
+if(outlineKnot) {
+	ctxKnot.globalCompositeOperation = "destination-out";
+	ctxKnot.lineWidth = link1.strandW - 5;
+	link1.drawSegment(l1ti,l1tf);
+}
+ctxKnot.restore();
+}
+this.drawSeg2 = function() {
+ctxKnot.save();
+this.ghost(.95);
+ctxKnot.globalCompositeOperation = "destination-out";
+ctxKnot.lineWidth = link2.strandW + gapProp*tQ;
+link2.drawSegment(l2ti,l2tf);
+ctxKnot.restore();
+
+ctxKnot.save();
+this.ghost(1);
+ctxKnot.strokeStyle = link2.strandC;
+ctxKnot.lineWidth = link2.strandW;
+link2.drawSegment(l2ti,l2tf);
+if(outlineKnot) {
+	ctxKnot.globalCompositeOperation = "destination-out";
+	ctxKnot.lineWidth = link2.strandW - 5;
+	link2.drawSegment(l2ti,l2tf);
+}
+ctxKnot.restore();
+}
+
+this.getHGate = function() { return hGate; }
+this.getVGate = function() { return vGate; }
+this.draw = function() { drawDiamond(x,y,parity); }
+
+this.getState = function() {
+var res = 0;
+if(hGate.state) { 
+	res = 1;
+} else if(vGate.state) {
+	res = 2;
+}
+return res;
+}
+this.setState = function(state) {
+switch(state) {
+case 0:
+vGate.state=false;
+hGate.state=false;
+break;
+case 1:
+vGate.state=false;
+hGate.state=true;
+break;
+case 2:
+hGate.state=false;
+vGate.state=true;
+break;
+}
+}
+}
+
+function Cell(x,y) {
+
+var diamondTop, diamondRight, diamondBottom, diamondLeft;
+var gateTop,gateRight,gateBottom,gateLeft;
+var parity = (x+y)%2;
+var quadrant = 2*(y%2) + x%2;
+
+if(y%2==0) {
+	if(x%2==0) {
+		diamondTop    = evenDiamonds[y/2][x/2];
+		diamondLeft   = oddDiamonds[y/2][x/2];
+	} else {
+		diamondTop    = evenDiamonds[y/2][(x-1)/2];
+		diamondRight  = oddDiamonds[y/2][(x+1)/2];
+	}
+} else {
+	if(x%2==0) {
+		diamondTop    = oddDiamonds[(y-1)/2][x/2];
+		diamondRight  = evenDiamonds[(y+1)/2][x/2];
+	} else {
+		diamondTop    = oddDiamonds[(y-1)/2][(x+1)/2];
+		diamondLeft   = evenDiamonds[(y+1)/2][(x-1)/2];
+	}
+}
+
+if(parity==0) {
+	diamondRight  = diamondTop;
+	diamondBottom = diamondLeft;
+} else {
+	diamondBottom = diamondRight;
+	diamondLeft   = diamondTop;
+}
+
+gateTop    = diamondTop.getHGate();
+gateRight  = diamondRight.getVGate();
+gateBottom = diamondBottom.getHGate();
+gateLeft   = diamondLeft.getVGate();
+
+
+
+this.getX    = function() { return x; }
+this.getY    = function() { return y; }
+this.getDir1 = function() {
+var dir1;
+if(parity==0) {
+	switch(diamondBottom.getState()) {
+		case 1:
+			dir1 = 6;
+		break;
+		case 2:
+			dir1 = 4;
+		break;
+		default:
+			dir1 = 5;
+		break;
+	}
+} else {
+	switch(diamondTop.getState()) {
+		case 1:
+			dir1 = 6;
+		break;
+		case 2:
+			dir1 = 0;
+		break;
+		default:
+			dir1 = 7;
+		break;
+	}
+}
+return dir1;
+}
+this.getDir2 = function() {
+var dir2;
+if(parity==0) {
+	switch(diamondTop.getState()) {
+		case 1:
+			dir2 = 2;
+		break;
+		case 2:
+			dir2 = 0;
+		break;
+		default:
+			dir2 = 1;
+		break;
+	}
+} else {
+	switch(diamondBottom.getState()) {
+		case 1:
+			dir2 = 2;
+		break;
+		case 2:
+			dir2 = 4;
+		break;
+		default:
+			dir2 = 3;
+		break;
+	}
+}
+return dir2;
+}
+this.getNeighbor1 = function() {
+	var neighbor1;
+	switch(this.getDir1()) {
+	case 4:
+		neighbor1 = Cells[y+1][x];
+	break;
+	case 5:
+		neighbor1 = Cells[y+1][x-1];
+	break;
+	case 6:
+		neighbor1 = Cells[y][x-1];
+	break;
+	case 7:
+		neighbor1 = Cells[y-1][x-1];
+	break;
+	case 0:
+		neighbor1 = Cells[y-1][x];
+	break;
+	}
+	return neighbor1;
+}
+this.getNeighbor2 = function() {
+	var neighbor2;
+	switch(this.getDir2()) {
+	case 0:
+		neighbor2 = Cells[y-1][x];
+	break;
+	case 1:
+		neighbor2 = Cells[y-1][x+1];
+	break;
+	case 2:
+		neighbor2 = Cells[y][x+1];
+	break;
+	case 3:
+		neighbor2 = Cells[y+1][x+1];
+	break;
+	case 4:
+		neighbor2 = Cells[y+1][x];
+	break;
+	}
+	return neighbor2;
+}
+this.getQuadrant = function() {
+	return quadrant;
+}
+this.toString = function() {
+	return y*2*knotWidth + x;
+}
+this.equals = function( cell ) {
+	return cell.toString() == this.toString();
+}
+}
+
+function makeBezierX(inDir, outDir) {
+var x1 = dirToX(inDir);
+var x2 = curveStrength*Math.sin(inDir*Math.PI/4);
+var x3 = curveStrength*Math.sin(outDir*Math.PI/4);
+var x4 = dirToX(outDir);
+var f;
+if( (inDir-outDir)%4==0 ) {
+f = function(t) { return x1+(x4-x1)*t; }
+} else if( (inDir==0 || inDir==4) && (outDir==2 || outDir==6) ) {
+f = function(t) { return (t<=.5? x1 : x1 + (x4-x1)*(2*t-1)); }
+} else if( (inDir==2 || inDir==6) && (outDir==0 || outDir==4) ) {
+f = function(t) { return (t<=.5? x1 + (x4-x1)*(2*t) : x4 ); }
+} else {
+switch(curveStyle) {
+case 2:
+f = function(t) {
+return (1-t)*(1-t)*x1 + t*t*x4;
+}
+break;
+case 3:
+f = function(t) {
+return (1-t)*(1-t)*(1-t)*x1 + t*t*t*x4;
+}
+break;
+case 4:
+f = function(t) {
+return (1-t)*(1-t)*(1-t)*x1 + 3*(1-t)*(1-t)*t*x2 + 3*(1-t)*t*t*x3 + t*t*t*x4;
+//return (1-t)*(1-t)*(1-t)*x1 + t*t*t*x4;
+}
+break;
+}
+}
+return f;
+}
+
+function makeBezierY(inDir, outDir) {
+var x1 = dirToY(inDir);
+var x2 = curveStrength*-1*Math.cos(inDir*Math.PI/4);
+var x3 = curveStrength*-1*Math.cos(outDir*Math.PI/4);
+var x4 = dirToY(outDir);
+
+var f;
+
+if( (inDir-outDir)%4==0 ) {
+f = function(t) { return x1+(x4-x1)*t; }
+} else if( (inDir==0 || inDir==4) && (outDir==2 || outDir==6) ) {
+f = function(t) { return (t<=.5? x1 + (x4-x1)*(2*t) : x4 ); }
+} else if( (inDir==2 || inDir==6) && (outDir==0 || outDir==4) ) {
+f = function(t) { return (t<=.5? x1 : x1 + (x4-x1)*(2*t-1)); }
+} else {
+switch(curveStyle) {
+case 2:
+f = function(t) {
+return (1-t)*(1-t)*x1 + t*t*x4;
+}
+break;
+case 3:
+f = function(t) {
+return (1-t)*(1-t)*(1-t)*x1 + t*t*t*x4;
+}
+break;
+case 4:
+f = function(t) {
+return (1-t)*(1-t)*(1-t)*x1 + 3*(1-t)*(1-t)*t*x2 + 3*(1-t)*t*t*x3 + t*t*t*x4;
+}
+break;
+}
+}
+return f;
+}
+
+function cellsToDiamond(cell, dir) {
+
+var xx,yy;
+var d;
+
+if(cell.getQuadrant()==0) {
+xx = cell.getX()/2;
+yy = cell.getY()/2;
+switch(dir) {
+case 0:
+case 1:
+case 2:
+d = evenDiamonds[yy][xx];
+break;
+case 4:
+case 5:
+case 6:
+d = oddDiamonds[yy][xx];
+break;
+}
+} else if(cell.getQuadrant()==1) {
+xx = (cell.getX()-1)/2;
+yy = cell.getY()/2;
+switch(dir) {
+case 6:
+case 7:
+case 0:
+d = evenDiamonds[yy][xx];
+break;
+case 2:
+case 3:
+case 4:
+d = oddDiamonds[yy][xx+1];
+break;
+}
+} else if(cell.getQuadrant()==2) {
+xx = cell.getX()/2;
+yy = (cell.getY()-1)/2;
+switch(dir) {
+case 6:
+case 7:
+case 0:
+d = oddDiamonds[yy][xx];
+break;
+case 2:
+case 3:
+case 4:
+d = evenDiamonds[yy+1][xx];
+break;
+}
+} else if(cell.getQuadrant()==3) {
+xx = (cell.getX()-1)/2;
+yy = (cell.getY()-1)/2;
+switch(dir) {
+case 0:
+case 1:
+case 2:
+d = oddDiamonds[yy][xx+1];
+break;
+case 4:
+case 5:
+case 6:
+d = evenDiamonds[yy+1][xx];
+break;
+}
+}
+return d;
+}
+
+function dirToX(dir) { return (1 <= dir && dir <= 3) - (5 <= dir && dir <= 7); }
+function dirToY(dir) { return dirToX((dir+6)%8); }
+
+function setDiamond(x,y,parity,state) {
+if(parity) {
+oddDiamonds[y][x].setState(state);
+} else {
+evenDiamonds[y][x].setState(state);
+}
+findLinks();
+drawCanvas();
+}
+
+function getDiamond(x,y,parity) {
+var d;
+if(parity) {
+d = oddDiamonds[y][x];
+} else {
+d = evenDiamonds[y][x];
+}
+return d;
+}
+
+function getDiamondState(x,y,parity) { return getDiamond(x,y,parity).getState(); }
+
+function drawCanvas() {
+//gateColor = knotStrandColor;
+ctxKnot.clearRect(0,0, cPad[1] + cPad[3] + knotWidth*tW, cPad[0] + cPad[2] + knotHeight*tW);
+if(distinguishingStrands) {
+for(var i=0; i<knotLinks.length; i++) {
+	knotLinks[i].strandC = knotStrandColors[i%knotStrandColors.length];
+}
+} else {
+for(var i=0; i<knotLinks.length; i++) {
+	knotLinks[i].strandC = knotStrandColor;
+}
+}
+
+
+if(drawingKnot) {
+	for(var i=0; i<knotLinks.length; i++) {
+		var myKnot = knotLinks[i];
+		ctxKnot.strokeStyle = myKnot.strandC;
+		ctxKnot.lineWidth = myKnot.strandW;
+		myKnot.drawSegment(0,myKnot.getLength());
+		if(outlineKnot) {
+			ctxKnot.globalCompositeOperation = "destination-out";
+			ctxKnot.lineWidth = myKnot.strandW - 5;
+			myKnot.drawSegment(0,myKnot.getLength());
+		}
+		ctxKnot.globalCompositeOperation = "source-over"; 
+	}
+	
+	for(var y=0; y<=knotHeight; y++) {
+		for(var x=0; x<knotWidth; x++) {
+			if(evenDiamonds[y][x].getState()==0) {
+				evenDiamonds[y][x].drawSeg1();
+			}
+		}
+	}
+	for(var y=0; y<knotHeight; y++) {
+		for(var x=0; x<=knotWidth; x++) {
+			if(oddDiamonds[y][x].getState()==0) {
+				oddDiamonds[y][x].drawSeg2();
+			}
+		}
+	}
+}
+if(drawingGates) {
+	drawGates();
+}
+if(drawingDotLattice) {
+	drawDotLattice();
+}
+
+ctxKnot.save();
+ctxKnot.globalCompositeOperation = "destination-over";
+ctxKnot.fillStyle=knotBackgroundColor;
+ctxKnot.fillRect(0,0,knotCanvas.width,knotCanvas.height);
+ctxKnot.restore();
+}
+
+function setCanvas() {
+	knotcontainerdiv.style.height = (cPad[0] + cPad[2] + knotHeight*tW);
+	knotcontainerdiv.style.width  = (cPad[1] + cPad[3] + knotWidth*tW);
+
+	knotCanvas.height = (cPad[0] + cPad[2] + knotHeight*tW);
+	knotCanvas.width  = (cPad[1] + cPad[3] + knotWidth*tW);
+	ctxKnot.clearRect(0,0, cPad[1] + cPad[3] + knotWidth*tW, cPad[0] + cPad[2] + knotHeight*tW);
+	
+	UICanvas.height = (cPad[0] + cPad[2] + knotHeight*tW);
+	UICanvas.width  = (cPad[1] + cPad[3] + knotWidth*tW);
+	ctxUI.clearRect(0,0, cPad[1] + cPad[3] + knotWidth*tW, cPad[0] + cPad[2] + knotHeight*tW);
+}
+
+
+
+function drawDotLattice() {
+
+var p = Math.max(strandProp,.5);
+
+var sizes = [tH*(1-1.05*p), .5*tH*(1-1.05*p)];
+var colors = [gateColor, knotBackgroundColor];
+for(var i=0; i<1; i++) {
+	ctxKnot.strokeStyle = colors[i];
+	ctxKnot.lineCap = "round";
+	ctxKnot.lineWidth = sizes[i];
+	ctxKnot.beginPath();
+	for(var y=0; y<=knotHeight; y++) {
+		var yy = cPad[0] + tW*y;
+		for(var x=0; x<=knotWidth; x++) {
+			var xx = cPad[3] + tW*x;
+			ctxKnot.moveTo(xx,yy);
+			ctxKnot.lineTo(xx,yy);
+		}
+	}
+	for(var y=0; y<knotHeight; y++) {
+		var yy = cPad[0] + tW*y + tH;
+		for(var x=0; x<knotWidth; x++) {
+			var xx = cPad[3] + tW*x + tH;
+			ctxKnot.moveTo(xx,yy);
+			ctxKnot.lineTo(xx,yy);
+		}
+	}
+	ctxKnot.stroke();
+	}
+}
+
+function drawDiamondLattice() {
+ctxKnot.strokeStyle = "#ff0000";
+ctxKnot.lineCap = "butt";
+ctxKnot.lineWidth = 1;
+ctxKnot.save();
+ctxKnot.rect(cPad[3], cPad[0], knotWidth*tW, knotHeight*tW);
+ctxKnot.clip();
+ctxKnot.beginPath();
+for(var x=1; x<knotHeight + knotWidth; x++) {
+	var xx1 = cPad[3] + x*tW;
+	var xx2 = cPad[3] + (x-knotHeight)*tW;
+	ctxKnot.moveTo(xx1,cPad[0]);
+	ctxKnot.lineTo(xx2,cPad[0]+knotHeight*tW);
+	ctxKnot.moveTo(xx2,cPad[0]);
+	ctxKnot.lineTo(xx1,cPad[0]+knotHeight*tW);
+}
+ctxKnot.stroke();
+ctxKnot.restore();
+}
+
+function drawTileLattice() {
+ctxKnot.strokeStyle = "#ffffff";
+ctxKnot.lineCap = "butt";
+ctxKnot.lineWidth = 1;
+ctxKnot.beginPath();
+for(var x=0; x<=knotWidth; x++) {
+	ctxKnot.moveTo(cPad[3] + tW*x - .5, cPad[0]);
+	ctxKnot.lineTo(cPad[3] + tW*x - .5, cPad[0] + tW*knotHeight);
+}
+for(var y=0; y<=knotHeight; y++) {
+	ctxKnot.moveTo(cPad[3], cPad[0] + tW*y - .5);
+	ctxKnot.lineTo(cPad[3] + tW*knotWidth, cPad[0] + tW*y - .5);
+}
+ctxKnot.stroke();
+}
+
+function drawDiamond(x,y,parity) {
+	
+	var xx = cPad[3] + x*tW;
+	var yy = cPad[0] + y*tW;
+	if(parity) {
+		yy += tH;
+	} else {
+		xx += tH;
+	}
+	ctxKnot.beginPath();
+	ctxKnot.moveTo(xx-tH, yy);
+	ctxKnot.lineTo(xx, yy-tH);
+	ctxKnot.lineTo(xx+tH, yy);
+	ctxKnot.lineTo(xx, yy+tH);
+	ctxKnot.fill();
+}
+
+function drawGates() {
+var p = Math.max(strandProp,.25);
+var c = 1;
+ctxKnot.lineWidth = .25*tH*(1-p);
+ctxKnot.strokeStyle = gateColor;
+ctxKnot.lineCap = "round";
+ctxKnot.beginPath();
+for(var y=0; y<=knotHeight; y++) {
+	for(var x=0; x<knotWidth; x++) {
+		var xx = cPad[3] + x*tW + tH;
+		var yy = cPad[0] + y*tW;
+		switch(evenDiamonds[y][x].getState()) {
+			case 1:
+				ctxKnot.moveTo(xx-c*tH,yy);
+				ctxKnot.lineTo(xx+c*tH,yy);
+			break;
+			case 2:
+				ctxKnot.moveTo(xx,yy-c*tH);
+				ctxKnot.lineTo(xx,yy+c*tH);
+			break;
+		}
+	}
+}
+for(var y=0; y<knotHeight; y++) {
+	for(var x=0; x<=knotWidth; x++) {
+		var xx = cPad[3] + x*tW;
+		var yy = cPad[0] + y*tW + tH;
+		switch(oddDiamonds[y][x].getState()) {
+			case 1:
+				ctxKnot.moveTo(xx-c*tH,yy);
+				ctxKnot.lineTo(xx+c*tH,yy);
+			break;
+			case 2:
+				ctxKnot.moveTo(xx,yy-c*tH);
+				ctxKnot.lineTo(xx,yy+c*tH);
+			break;
+		}
+	}
+}
+ctxKnot.stroke();
+}
+
+// UI Functions
+this.toggleDrawingKnot = function(s) { drawingKnot = s; drawCanvas(); }
+this.toggleDrawingGates = function(s) { drawingGates = s; drawCanvas(); }
+this.toggleDrawingDotLattice = function(s) { drawingDotLattice = s; drawCanvas(); }
+this.setDistinguishingStrands = function(s) { distinguishingStrands = s; drawCanvas(); }
+this.setColors = function(strand,back) { knotStrandColor = strand; knotBackgroundColor = back; drawCanvas(); }
+this.toggleOutlineKnot = function(s) { outlineKnot = s; drawCanvas(); }
+
+this.settQ = function(s) {
+tQ = s;
+tH = 2*tQ;
+tW = 2*tH;
+var c = Math.floor(tQ/2);
+cPad = [c,c,c,c];
+setCanvas();
+findLinks();
+drawCanvas();
+}
+
+this.setStrandWidth = function(sProp) { strandProp = sProp; drawCanvas(); }
+this.setStrandGapWidth = function(sGap) { gapProp = sGap; drawCanvas(); }
+this.redraw = function() { drawCanvas(); }
+
+function diamondIndicator(ev) {
+var canvasRect = UICanvas.getBoundingClientRect();
+var x = ev.clientX - cPad[3] - canvasRect.left;
+var y = ev.clientY - cPad[0] - canvasRect.top;
+
+if(0 < x && x < tW*knotWidth && 0 < y && y < tW*knotHeight) {
+	var u = x-y;
+	var v = x+y;
+	u = Math.floor(u/tW);
+	v = Math.floor(v/tW);
+	
+	var parity = (u+v+2)%2;
+	var xc = u+v;
+	var yc = v-u;
+	if(parity==0) {
+		xc = xc/2;
+		yc = yc/2;
+	} else {
+		xc = (xc+1)/2;
+		yc = (yc-1)/2;
+	}
+	ctxUI.clearRect(0,0, cPad[1] + cPad[3] + knotWidth*tW, cPad[0] + cPad[2] + knotHeight*tW);
+	if(( parity && 0 < xc && xc < knotWidth && 0 <= yc && yc < knotHeight) || (!parity && 0 <= xc && xc < knotWidth && 0 < yc && yc < knotHeight)) {
+	
+		ctxUI.save();
+		ctxUI.globalAlpha = .66;
+		ctxUI.fillStyle = "#00ccff";
+		var xx = cPad[3] + xc*tW;
+		var yy = cPad[0] + yc*tW;
+		if(parity) {
+			yy += tH;
+		} else {
+			xx += tH;
+		}
+		ctxUI.beginPath();
+		ctxUI.moveTo(xx-tH, yy);
+		ctxUI.lineTo(xx, yy-tH);
+		ctxUI.lineTo(xx+tH, yy);
+		ctxUI.lineTo(xx, yy+tH);
+		ctxUI.fill();
+		ctxUI.restore();
+	}
+}
+}
+
+function diamondSelector(ev) {
+var canvasRect = UICanvas.getBoundingClientRect();
+var x = ev.clientX - cPad[3] - canvasRect.left;
+var y = ev.clientY - cPad[0] - canvasRect.top;
+
+if(0 < x && x < tW*knotWidth && 0 < y && y < tW*knotHeight) {
+	var u = x-y;
+	var v = x+y;
+	u = Math.floor(u/tW);
+	v = Math.floor(v/tW);
+	
+	var parity = (u+v+2)%2;
+	var xc = u+v;
+	var yc = v-u;
+	if(parity==0) {
+		xc = xc/2;
+		yc = yc/2;
+	} else {
+		xc = (xc+1)/2;
+		yc = (yc-1)/2;
+	}
+	drawCanvas();
+	if(( parity && 0 < xc && xc < knotWidth && 0 <= yc && yc < knotHeight) || (!parity && 0 <= xc && xc < knotWidth && 0 < yc && yc < knotHeight)) {
+		//drawDiamond(xc,yc,parity);
+		
+		var tl,tr,bl,br;
+		if(parity) {
+			tl = getDiamondState(xc-1,yc,  0);
+			tr = getDiamondState(xc,  yc,  0);
+			bl = getDiamondState(xc-1,yc+1,0);
+			br = getDiamondState(xc  ,yc+1,0);
+		} else {
+			tl = getDiamondState(xc,  yc,  1);
+			tr = getDiamondState(xc,  yc-1,1);
+			bl = getDiamondState(xc+1,yc,  1);
+			br = getDiamondState(xc+1,yc-1,1);
+		}
+		var currState = getDiamondState(xc,yc,parity);
+		var is1Legal = (tl != 1 && tr != 1 && bl != 1 && br != 1);
+		var is2Legal = (tl != 2 && tr != 2 && bl != 2 && br != 2);
+		
+		var next = 0;
+		if(restricting) {
+			switch(currState) {
+				case 0:
+					if(is1Legal) {
+						next = 1;
+					} else if(is2Legal) {
+						next = 2;
+					}
+				break;
+				case 1:
+					if(is2Legal) {
+						next = 2;
+					}
+				break;
+			}
+		} else {
+			next = (currState+1)%3;
+		}
+		setDiamond(xc,yc,parity,next);
+	}
+}
+}
+
+}
+
+function init() {
+
+// Print Area
+var printArea = document.getElementById('section-to-print');
+
+// variables for sticker
+// var first_tileWidth = 25;
+// var first_knotWidth = 5;
+// var first_knotHeight = 8;
+// printArea.classList.add("sticker");
+
+// variables for portrait
+var first_tileWidth = 25;
+var first_knotWidth = 5;
+var first_knotHeight = 8;
+var windowW = screen.width;
+var scale = '';
+
+var first_gap = .25;
+
+var tQ = parseFloat(first_tileWidth);
+
+var knotBackgroundColor = "#000000";
+var knotStrandColor = "#ffffff";
+
+document.form1.reset();
+// document.form1.field_tileWidth.value = first_tileWidth;
+// document.form1.field_knotWidth.value = first_knotWidth;
+// document.form1.field_knotHeight.value = first_knotHeight;
+
+// Sticker setup on load
+printArea.classList.add("sticker");
+
+// Check if mobile
+function isMobileDevice() {
+    return (typeof window.orientation !== "undefined") || (navigator.userAgent.indexOf('IEMobile') !== -1);
+};
+
+var mobileCheck = isMobileDevice();
+
+var knotCanvas = document.getElementById('canvas1');
+var UICanvas = document.getElementById('canvas2');
+
+var blackBtn = document.getElementById('blackDefault');
+var outlineBtn = document.getElementById('outlineDefault');
+
+var portraitBtn = document.getElementById('portrait');
+var squareBtn = document.getElementById('square');
+var stickerBtn = document.getElementById('sticker');
+var randomBtn = document.getElementById('random');
+
+var myKnot;
+//config = new CelticKnotConfigurator(3,2,mainCanvas,20);
+myKnot = new CelticKnotConfigurator(first_knotWidth,first_knotHeight,knotCanvas, UICanvas, first_tileWidth);
+
+// document.form1.field_enableEdting.addEventListener('click', function() {
+// UICanvas.style.display = (document.form1.field_enableEdting.checked?'block':'none');
+// }, false);
+// document.form1.field_drawKnot.addEventListener('click',function() { myKnot.toggleDrawingKnot(this.checked); } ,false);
+// document.form1.field_outlineKnot.addEventListener('click', function() { myKnot.toggleOutlineKnot(this.checked); }, false);
+// document.form1.field_drawGates.addEventListener('click',function() { myKnot.toggleDrawingGates(this.checked); } ,false);
+// document.form1.field_drawDotLattice.addEventListener('click',function() { myKnot.toggleDrawingDotLattice(this.checked); } ,false);
+// document.form1.field_distinguishStrands.addEventListener('click', function() { document.form1.field_knotStrandColor.disabled=this.checked; myKnot.setDistinguishingStrands(this.checked); }, false);
+document.form1.field_distinguishStrands.addEventListener('click', function() { myKnot.setDistinguishingStrands(this.checked); }, false);
+
+// RESET for mobile
+
+if (mobileCheck == true){
+  scale = windowW*.046;
+  myKnot.setSize(first_knotWidth,first_knotHeight);
+  tQ = parseFloat(Math.floor(scale));
+  myKnot.settQ(tQ);
+}
+
+function saveImage(){
+	// myKnot.toggleDrawingDotLattice(false);
+	myKnot.setDistinguishingStrands(false);
+	document.form1.field_distinguishStrands.checked = false;
+	// document.form1.field_drawDotLattice.checked = false;
+	var canvas = document.getElementById("canvas1");
+	var fullQuality = canvas.toDataURL("image/jpeg", .75);
+	console.log(fullQuality);
+	$("#fileToUpload").val(fullQuality);
+	setTimeout(function(){ 
+		var submitform = document.getElementById("uploadImage");
+		submitform.submit();
+	 }, 1000);
+	
+}
+
+function enlarge(){
+	tQ = parseFloat('25');
+	myKnot.settQ(tQ);
+	saveImage();
+	setTimeout(() => { 
+		tQ = parseFloat(Math.floor(scale));
+		myKnot.settQ(tQ);
+	 }, "700");
+}
+
+
+// SIMPLIFIED UI BUTTONS
+blackBtn.addEventListener('click', function() { 
+	myKnot.toggleOutlineKnot(false); 
+	myKnot.setColors("#ffffff", "#000000");
+}, false);
+outlineBtn.addEventListener('click', function() { 
+	myKnot.toggleOutlineKnot(true); 
+	myKnot.setColors("#000000", "#ffffff");
+}, false);
+randomBtn.addEventListener('click', function() { 
+	randomName();
+}, false);
+// portraitBtn.addEventListener('click', function() { 
+// 	myKnot.setSize(first_knotWidth,first_knotHeight);
+// 	printArea.classList.remove("sticker");
+// 	tQ = parseFloat('20');
+// 	myKnot.settQ(tQ);
+// }, false);
+// squareBtn.addEventListener('click', function() { 
+// 	myKnot.setSize(first_knotWidth,first_knotWidth);
+// 	printArea.classList.remove("sticker");
+// 	tQ = parseFloat('20');
+// 	myKnot.settQ(tQ);
+// }, false);
+// stickerBtn.addEventListener('click', function() { 
+// 	myKnot.setSize('5','8');
+// 	printArea.classList.add("sticker");
+// 	tQ = parseFloat('25');
+// 	myKnot.settQ(tQ);
+// }, false);
+
+
+// document.getElementById("printPage").addEventListener('click', function() {
+// 	myKnot.toggleDrawingDotLattice(false);
+// 	myKnot.setDistinguishingStrands(false);
+// 	document.form1.field_distinguishStrands.checked = false;
+// 	document.form1.field_drawDotLattice.checked = false;
+// 	if (mobileCheck == true){
+// 		enlarge();
+// 	}else{
+// 		setTimeout(() => { window.print(); }, "300");
+// 	}
+	
+// }, false);
+
+document.getElementById("save").addEventListener('click', function() {
+	if (mobileCheck == true){
+		enlarge();
+		document.form1.field_distinguishStrands.checked = false;
+	}else{
+		document.form1.field_distinguishStrands.checked = false;
+		setTimeout(function(){ 
+			saveImage();
+	 	}, 1000);
+	}
+},);
+
+document.getElementById("width").addEventListener("input", (event) => {
+	var sWidth = parseFloat(document.form1.field_strandWidth.value);
+	myKnot.setStrandWidth(sWidth);
+	// var tQ = parseFloat(first_tileWidth);
+	myKnot.settQ(tQ);
+	var sGapWidth = parseFloat(first_gap);
+	myKnot.setStrandGapWidth(sGapWidth);
+});
+
+
+// document.form1.redrawbutton.addEventListener('click', function() {
+// var sWidth = parseFloat(document.form1.field_strandWidth.value);
+// myKnot.setStrandWidth(document.form1.field_strandWidth.value);
+// var tQ = parseFloat(first_tileWidth);
+// myKnot.settQ(tQ);
+
+// var sGapWidth = parseFloat(first_gap);
+// myKnot.setStrandGapWidth(sGapWidth);
+
+// // myKnot.setColors(knotStrandColor, knotBackgroundColor);
+// });
+
+document.form1.resetbutton.addEventListener('click', function() {
+var sWidth = parseFloat(document.form1.field_strandWidth.value);
+myKnot.setStrandWidth(sWidth);
+var w = parseInt(first_knotWidth);
+var h = parseInt(first_knotHeight);
+myKnot.setSize(w,h);
+
+var tQ = parseFloat(first_tileWidth);
+
+if (mobileCheck == true){
+	location.reload();
+	// tQ = parseFloat(Math.floor(scale));
+	// myKnot.settQ(tQ);
+ } else{
+	myKnot.settQ(tQ);
+ }
+
+
+var sGapWidth = parseFloat(first_gap);
+myKnot.setStrandGapWidth(sGapWidth);
+
+// myKnot.setColors(first_knotStrandColor, first_knotBackgroundColor);
+},false);
+
+
+var labels = document.getElementsByTagName('label');
+for(var i=0; i<labels.length; i++) {
+	//labels[i].addEventListener('focus', function() { alert('a'); }, false);
+}
+// document.getElementById("settingsdiv").addEventListener('mouseover', function() {
+// document.getElementById("settingstab1").style.display="none";
+// document.getElementById("settingstab2").style.display="table-cell";
+// }, false);
+
+// document.getElementById("settingsdiv").addEventListener('mouseout', function() {
+// document.getElementById("settingstab1").style.display="table-cell";
+// document.getElementById("settingstab2").style.display="none";
+// }, false);
+
+
+}
+
+
+function hex(dec) {
+var hx = "0123456789abcdef".split("");
+var p1 = Math.floor(dec/16);
+var p2 = Math.floor(dec%16);
+if(p1>hx.length) {
+p1 = hx.length;
+}
+return hx[p1]+""+hx[p2];
+}
+
+function swap() {
+var tmp = document.form1.field_knotStrandColor.value;
+document.form1.field_knotStrandColor.value = document.form1.field_knotBackgroundColor.value;
+document.form1.field_knotBackgroundColor.value = tmp;
+}
+
+function initPicker() {
+var myCanvas = document.getElementById("colorpicker");
+var ctx = myCanvas.getContext('2d');
+
+myCanvas.width  = 600;
+myCanvas.height = 200;
+ctxKnot.fillStyle="#ffffff";
+ctxKnot.fillRect(0,0,1000,1000);
+
+/*
+ff0000
+ffff00
+00ff00
+00ffff
+0000ff
+ff00ff
+*/
+var w = 10;
+var h = 6;
+var n = 16;
+
+for(var i=0; i<n; i++) {
+	for(var j=0; j<n; j++) {
+		var c1 = hex(256*j/n); // 00 -> FF
+		var c2 = hex(256*i/n * j/n);       // 00 -> ii
+		var c3 = hex(256*i/n + (256 - 256*i/n)*j/n);       // ii -> FF
+		
+		ctx.fillStyle="#"+c1+""+c2+"00";
+		ctx.fillRect((i+0*n)*w,j*h,w,h);
+		
+		ctx.fillStyle="#ff"+c3+""+c1;
+		ctx.fillRect((i+0*n)*w,(n+j)*h,w,h);
+		
+		
+	}
+}
+
+}
+
+
+
+</script>
+</head>
+<body onLoad="init();">
+<form name="form1">
+<div class="instructions">
+	<!-- <div style="display:inline-block;">
+	<p>Step One: Choose Your Layout<br><br>
+	<button type="button" id="portrait" class="knoticons">Portrait<br><img src="images/portrait.png"></button>
+	<button type="button" id="square" class="knoticons">Square<br><img src="images/square.png"></button>
+	<button type="button" id="sticker" class="knoticons">Sticker</button>
+	</p>
+	</div>
+	<p class="small">Changing the layout after you move to step two will reset your design.</p>
+	<hr> -->
+	<div style="display:inline-block;">
+	<p>Create Your Design<br><br>
+	<p class="small">Toggling the options below can help you create your design.</p><br>
+	<button type="button" id="blackDefault" class="knoticons"><img src="images/black_bg.png"><p>Black Background</p></button>
+	<button type="button" id="outlineDefault" class="knoticons"><img src="images/no_bg.png"><p>No Background</p></button>
+	</p>	</div>
+
+	<!-- <input type="checkbox" name="field_drawDotLattice" id="field_drawDotLattice">
+	<label for="field_drawDotLattice" class="act" style="font-size: 18px; display:inline-block; margin-right: 10px;">Draw Lattice</label> -->
+	<br>
+	<input type="checkbox" name="field_distinguishStrands" id="field_distinguishStrands" checked >
+	<label for="field_distinguishStrands" class="act" style="font-size: 18px; display:inline-block;">Distinguish Strands</label>
+	<br><br>
+	<label for="width" style="font-size: 18px;">Strand Width:</label>
+	<!-- <input type="text" name="field_strandWidth" value=".65" style="width:5em;"> -->
+	<input type="range" id="width" name="field_strandWidth" min=".2" max=".9" step=".01" value=".65" />
+	<!-- <label for="one">Zoom</label> -->
+	<br><br>
+	<p class="small">When you click "done", you will collect your black and white sticker using the name below and color it if you'd like. Use the button to generate a new random name.</p>
+	<br>
+	<p id="randomname" style="display:inline-block; margin-right: 18px; width: 60%; font-size:17px;"></p><button type="button" id="random" style="display:inline-block;">change name</button>
+	<br>
+	<hr>	
+	<br>
+	<div style="position:fixed; bottom:0; left: 20%; z-index: 2000; width:100%;">
+	<input type="button" name="resetbutton" value="Start Over" style="width:35%;">
+	<!-- <input type="button" id="printPage" value="PRINT" style="width:28%;"> -->
+	<input type="button" id="save" name="save" value="DONE" style="width:23%;">
+	<!-- <input type="button" name="redrawbutton" value="Re-draw" style="width:50% "> -->
+	</div>
+</form>
+<form method="POST" enctype="multipart/form-data" action="save.php" id="uploadImage" style="height:0; margin:0;">
+	<input type="hidden" name="fileToUpload" id="fileToUpload" value="" >
+	<input type="hidden" name="fileName" id="fileName" value="" >
+</form>
+<p class="small">Tap on the knot to change the direction of the strands.</p><br>
+</div>
+<div id="section-to-print">
+<p class="context top"><img width="120px" src="images/h_logo.svg" alt="Harvard Art Museums" /></p>
+<div id="knotcontainerdiv">
+<canvas id="canvas1" width="1" height="1" style="position:absolute; top:0px; left:0px; background:#ffffff; "></canvas>
+<canvas id="canvas2" width="1" height="1" style="position:absolute; top:0px; left:0px; background:none; cursor:pointer;"></canvas>
+</div>
+<br><br><br><br><br>
+<p class="context bottom">Pellentesque neque mi, elementum vitae enim a, tincidunt interdum enim. Vivamus tempus turpis id orci vulputate tincidunt. Maecenas dignissim mollis nisl vitae lobortis. Morbi ac libero in ipsum sagittis lacinia et quis sem. Maecenas finibus odio ac iaculis vehicula. Vivamus nec tempus urna, porta sagittis justo. Integer vestibulum quis nibh vitae consequat.</p>
+</div>
+
+
+
+<div style="display:inline-block; ">
+<table>
+<tr>
+<td>
+
+</td>
+</tr>
+</table>
+</div>
+<br>
+<!-- <textarea name="out1" style="width:600px; height:200px; display:none; "></textarea>
+</form> -->
+
+
+</body>
+</html>
