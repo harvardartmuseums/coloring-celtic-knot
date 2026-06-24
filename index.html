@@ -66,10 +66,16 @@ p{
 	font-size: 23px;
 	margin: 0 0 0 5px;
 	font-weight: bold;
+	line-height: 22px;
 }
 
 .small{
 	font-size: 16px;
+	font-weight: normal;
+}
+
+.medium{
+	font-size: 18px;
 	font-weight: normal;
 }
 
@@ -191,7 +197,7 @@ var knotLinks = new Array();
 var ctxKnot = knotCanvas.getContext('2d');
 var ctxUI   = UICanvas.getContext('2d');
 var drawingKnot = true;
-var drawingGates = false;
+var drawingGates = true;
 var drawingKnot = true;
 var drawingDotLattice = true;
 var outlineKnot = true;
@@ -1235,7 +1241,7 @@ myKnot = new CelticKnotConfigurator(first_knotWidth,first_knotHeight,knotCanvas,
 // }, false);
 // document.form1.field_drawKnot.addEventListener('click',function() { myKnot.toggleDrawingKnot(this.checked); } ,false);
 // document.form1.field_outlineKnot.addEventListener('click', function() { myKnot.toggleOutlineKnot(this.checked); }, false);
-// document.form1.field_drawGates.addEventListener('click',function() { myKnot.toggleDrawingGates(this.checked); } ,false);
+document.form1.field_drawGates.addEventListener('click',function() { myKnot.toggleDrawingGates(this.checked); } ,false);
 document.form1.field_drawDotLattice.addEventListener('click',function() { myKnot.toggleDrawingDotLattice(this.checked); } ,false);
 // document.form1.field_distinguishStrands.addEventListener('click', function() { document.form1.field_knotStrandColor.disabled=this.checked; myKnot.setDistinguishingStrands(this.checked); }, false);
 document.form1.field_distinguishStrands.addEventListener('click', function() { myKnot.setDistinguishingStrands(this.checked); }, false);
@@ -1303,8 +1309,10 @@ outlineBtn.addEventListener('click', function() {
 document.getElementById("printPage").addEventListener('click', function() {
 	myKnot.toggleDrawingDotLattice(false);
 	myKnot.setDistinguishingStrands(false);
+	myKnot.toggleDrawingGates(false);
 	document.form1.field_distinguishStrands.checked = false;
 	document.form1.field_drawDotLattice.checked = false;
+	document.form1.field_drawGates.checked = false;
 	if (mobileCheck == true){
 		enlarge();
 	}else{
@@ -1457,14 +1465,21 @@ for(var i=0; i<n; i++) {
 	<p class="small">Changing the layout after you move to step two will reset your design.</p>
 	<hr> -->
 	<div style="display:inline-block;">
+		<p>Celtic Knots</p><br>
+		<p class="medium">Knotwork is an ornamental motif long associated with Celtic art. It is a two-dimensional form built on a grid of dots that divides the plane into intertwining “cords” that travel along the diagonal spaces on this grid. Walls or “breaks”  set up between one or more dots determine the shape of the knots. 
+		<br><br>
+		This digital knotwork app, adapted for Celtic Art Across the Ages from an algorithm by Ben Liu, allows you to generate your own pattern by altering a pre-existing knotwork design that was built on just such a system of dots. 
+		</p>
+	<br><br>
 	<p>Create Your Design<br><br>
 	<button type="button" id="blackDefault" class="knoticons"><img src="images/black_bg.png"><p>Black Background</p></button>
 	<button type="button" id="outlineDefault" class="knoticons"><img src="images/no_bg.png"><p>No Background</p></button>
 	</p>	</div>
 		<p class="small">Toggling the options below can help you create your design.</p><br>
 	<input type="checkbox" name="field_drawDotLattice" id="field_drawDotLattice" checked>
-	<label for="field_drawDotLattice" class="act" style="font-size: 18px; display:inline-block; margin-right: 10px;">Draw Lattice</label>
-	
+	<label for="field_drawDotLattice" class="act" style="font-size: 18px; display:inline-block; margin-right: 10px;">Draw Grid</label>
+	<input type="checkbox" name="field_drawGates" id="field_drawGates" checked>
+	<label for="field_drawGates" class="act" style="font-size: 18px; display:inline-block; margin-right: 10px;">Draw Breaks</label>
 	<input type="checkbox" name="field_distinguishStrands" id="field_distinguishStrands" checked>
 	<label for="field_distinguishStrands" class="act" style="font-size: 18px; display:inline-block;">Distinguish Strands</label>
 	<br><br>
@@ -1475,7 +1490,7 @@ for(var i=0; i<n; i++) {
 	<br><br>
 	<hr>	
 	<br>
-	<p class="small">When you click "print", you will collect your black and white sticker. If you'd like to use the color version to guide coloring your sticker, take a photo before you print.</p>
+	<p class="small">When you click "print", you will collect your black and white sticker without the grid, breaks, or color strands visible. If you'd like to use the color version to guide coloring your sticker, take a photo before you print.</p>
 	<br>
 	<input type="button" name="resetbutton" value="Start Over" style="width:35%;">
 	<input type="button" id="printPage" value="PRINT" style="width:28%;">
@@ -1485,7 +1500,7 @@ for(var i=0; i<n; i++) {
 </div>
 <div id="section-to-print">
 <p class="context top"><img width="120px" src="images/h_logo.svg" alt="Harvard Art Museums" /></p>
-<p class="small hide">Tap on the knot to change the direction of the strands.<br><br>
+<p class="small hide">Tap on the knot to change the direction of the cords.<br> Tapping the same spot repeatedly will give you different results.<br><br>
 </p>
 <div id="knotcontainerdiv">	
 <canvas id="canvas1" width="1" height="1" style="position:absolute; top:0px; left:0px; background:#ffffff; "></canvas>
