@@ -1371,6 +1371,13 @@ if (mobileCheck == true){
 var sGapWidth = parseFloat(first_gap);
 myKnot.setStrandGapWidth(sGapWidth);
 
+	myKnot.toggleDrawingDotLattice(true);
+	myKnot.setDistinguishingStrands(true);
+	myKnot.toggleDrawingGates(true);
+	
+	myKnot.toggleOutlineKnot(false); 
+	myKnot.setColors("#ffffff", "#000000");
+
 // myKnot.setColors(first_knotStrandColor, first_knotBackgroundColor);
 },false);
 
